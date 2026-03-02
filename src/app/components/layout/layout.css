@@ -1,0 +1,17 @@
+.navbar-motorx .nav-link.active {
+  font-weight: 600;
+  border-bottom: 2px solid var(--mx-accent);
+}
+
+.dropdown-menu {
+  background-color: var(--mx-bg-card);
+  border-color: var(--mx-border);
+}
+
+.dropdown-item {
+  color: var(--mx-text);
+}
+
+.dropdown-item:hover {
+  background-color: var(--mx-primary-light);
+}

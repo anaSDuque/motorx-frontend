@@ -1,0 +1,10 @@
+.register-wrapper {
+  background: linear-gradient(135deg, var(--mx-primary) 0%, var(--mx-dark) 100%);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px;
+  background-color: var(--mx-bg-card);
+}

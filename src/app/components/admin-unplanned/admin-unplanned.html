@@ -1,0 +1,82 @@
+<div class="container py-4">
+  <h2 class="mb-4"><i class="bi bi-exclamation-triangle"></i> Cita Imprevista</h2>
+
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set('')"></button>
+    </div>
+  }
+
+  <div class="card mx-auto" style="max-width: 650px;">
+    <div class="card-body">
+      <p class="text-muted mb-4">
+        Registre una cita imprevista para un vehiculo que se presenta sin cita previa.
+      </p>
+
+      <form (ngSubmit)="submit()">
+        <div class="mb-3">
+          <label class="form-label" for="vehicleId">Vehiculo</label>
+          <select id="vehicleId" class="form-select" [ngModel]="vehicleId()" (ngModelChange)="vehicleId.set($event)" name="vehicleId" required>
+            <option [ngValue]="null" disabled>Seleccione un vehiculo</option>
+            @for (v of vehicles(); track v.id) {
+              <option [ngValue]="v.id">{{ v.licensePlate }} - {{ v.brand }} {{ v.model }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="appointmentType">Tipo de cita</label>
+          <select id="appointmentType" class="form-select" [ngModel]="appointmentType()" (ngModelChange)="appointmentType.set($event)" name="appointmentType" required>
+            @for (t of appointmentTypes; track t) {
+              <option [ngValue]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label" for="appointmentDate">Fecha</label>
+            <input type="date" id="appointmentDate" class="form-control" [ngModel]="appointmentDate()" (ngModelChange)="appointmentDate.set($event)" name="appointmentDate" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="startTime">Hora de inicio</label>
+            <input type="time" id="startTime" class="form-control" [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" name="startTime" required />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="currentMileage">Kilometraje actual</label>
+          <input type="number" id="currentMileage" class="form-control" [ngModel]="currentMileage()" (ngModelChange)="currentMileage.set($event)" name="currentMileage" placeholder="Ej: 15000" required />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="technicianId">Tecnico (opcional)</label>
+          <select id="technicianId" class="form-select" [ngModel]="technicianId()" (ngModelChange)="technicianId.set($event)" name="technicianId">
+            <option [ngValue]="null">Sin asignar</option>
+            @for (e of employees(); track e.employeeId) {
+              <option [ngValue]="e.employeeId">{{ e.userName }} - {{ e.position }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="adminNotes">Notas del administrador</label>
+          <textarea id="adminNotes" class="form-control" [ngModel]="adminNotes()" (ngModelChange)="adminNotes.set($event)" name="adminNotes" rows="3" placeholder="Observaciones..."></textarea>
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Crear Cita Imprevista
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

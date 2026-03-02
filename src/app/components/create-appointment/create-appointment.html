@@ -1,0 +1,200 @@
+<div class="mb-4">
+  <h3 class="fw-bold"><i class="bi bi-calendar-plus me-2"></i>Agendar cita</h3>
+  <p class="text-muted">Sigue los pasos para programar tu visita al taller</p>
+</div>
+
+<!-- Progress steps -->
+<div class="d-flex justify-content-center mb-4">
+  <div class="step-indicator" [class.active]="step() >= 1" [class.completed]="step() > 1">
+    <span class="step-number">1</span>
+    <small>Vehículo</small>
+  </div>
+  <div class="step-line" [class.active]="step() > 1"></div>
+  <div class="step-indicator" [class.active]="step() >= 2" [class.completed]="step() > 2">
+    <span class="step-number">2</span>
+    <small>Horario</small>
+  </div>
+  <div class="step-line" [class.active]="step() > 2"></div>
+  <div class="step-indicator" [class.active]="step() >= 3">
+    <span class="step-number">3</span>
+    <small>Confirmar</small>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}</div>
+}
+
+<!-- STEP 1 -->
+@if (step() === 1) {
+  <div class="card border-0">
+    <div class="card-body">
+      <h5 class="fw-semibold mb-3">Selecciona vehículo, tipo y fecha</h5>
+
+      <div class="mb-3">
+        <label class="form-label">Vehículo</label>
+        <select class="form-select" [ngModel]="selectedVehicleId()" (ngModelChange)="selectedVehicleId.set($event)" name="vehicle">
+          <option [ngValue]="null" disabled>Selecciona tu moto</option>
+          @for (v of vehicles(); track v.id) {
+            <option [ngValue]="v.id">{{ v.licensePlate }} — {{ v.brand }} {{ v.model }}</option>
+          }
+        </select>
+        @if (vehicles().length === 0) {
+          <div class="mt-2">
+            <small class="text-muted">No tienes motos registradas. </small>
+            <a routerLink="/vehicles" class="text-motorx-primary">Registrar una moto</a>
+          </div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tipo de cita</label>
+        <select class="form-select" [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event); onTypeChange()" name="type">
+          <option value="" disabled>Selecciona un tipo</option>
+          @for (t of appointmentTypes; track t.value) {
+            <option [ngValue]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Rework info -->
+      @if (showReworkInfo() && reworkInfo()) {
+        <div class="alert alert-warning">
+          <h6 class="fw-semibold"><i class="bi bi-info-circle me-2"></i>Reproceso</h6>
+          <p class="mb-2">{{ reworkInfo()!.message }}</p>
+          <p class="mb-1"><i class="bi bi-whatsapp me-1"></i>
+            <a [href]="reworkInfo()!.whatsappLink" target="_blank" class="text-decoration-none">WhatsApp</a>
+          </p>
+          <p class="mb-1"><i class="bi bi-telephone me-1"></i>{{ reworkInfo()!.phoneNumber }}</p>
+          <p class="mb-0"><i class="bi bi-clock me-1"></i>{{ reworkInfo()!.businessHours }}</p>
+        </div>
+      }
+
+      @if (selectedType() !== 'REWORK') {
+        <div class="mb-3">
+          <label class="form-label">Fecha de la cita</label>
+          <input type="date" class="form-control" [min]="minDate"
+            [ngModel]="appointmentDate()" (ngModelChange)="appointmentDate.set($event)" name="date" />
+        </div>
+
+        @if (selectedVehicleId() && appointmentDate()) {
+          <button class="btn btn-outline-primary me-2" (click)="checkPlateRestriction()" [disabled]="checkingPlate()">
+            @if (checkingPlate()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="bi bi-shield-check me-1"></i>Verificar pico y placa
+          </button>
+        }
+
+        @if (plateRestriction()) {
+          <div class="mt-3 alert" [class.alert-success]="plateOk()" [class.alert-warning]="!plateOk()">
+            <p class="mb-1">{{ plateRestriction()!.message }}</p>
+            @if (plateRestriction()!.urgentContactMessage) {
+              <p class="mb-1 small">{{ plateRestriction()!.urgentContactMessage }}</p>
+              <p class="mb-0 small"><i class="bi bi-telephone me-1"></i>{{ plateRestriction()!.phoneNumber }}</p>
+            }
+          </div>
+        }
+
+        @if (plateOk()) {
+          <div class="mt-3 text-end">
+            <button class="btn btn-primary" (click)="goToStep2()">
+              Siguiente <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}
+
+<!-- STEP 2 -->
+@if (step() === 2) {
+  <div class="card border-0">
+    <div class="card-body">
+      <h5 class="fw-semibold mb-3">Selecciona un horario disponible</h5>
+
+      @if (loadingSlots()) {
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2 text-muted">Cargando horarios...</p>
+        </div>
+      } @else if (availableSlots().length === 0) {
+        <div class="text-center py-4">
+          <i class="bi bi-calendar-x display-4 text-muted"></i>
+          <p class="mt-2 text-muted">No hay horarios disponibles para esta fecha y tipo de cita</p>
+        </div>
+      } @else {
+        <div class="row g-2">
+          @for (slot of availableSlots(); track slot.startTime) {
+            <div class="col-md-4 col-6">
+              <div class="card slot-card cursor-pointer"
+                [class.selected]="selectedSlot()?.startTime === slot.startTime"
+                (click)="selectSlot(slot)">
+                <div class="card-body text-center py-3">
+                  <div class="fw-semibold">{{ slot.startTime }} - {{ slot.endTime }}</div>
+                  <small class="text-muted">{{ slot.availableTechnicians }} técnico(s)</small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="mt-3 d-flex justify-content-between">
+        <button class="btn btn-outline-secondary" (click)="goBack()">
+          <i class="bi bi-arrow-left me-1"></i>Anterior
+        </button>
+        <button class="btn btn-primary" [disabled]="!selectedSlot()" (click)="goToStep3()">
+          Siguiente <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- STEP 3 -->
+@if (step() === 3) {
+  <div class="card border-0">
+    <div class="card-body">
+      <h5 class="fw-semibold mb-3">Confirma tu cita</h5>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Kilometraje actual</label>
+          <div class="input-group">
+            <input type="number" class="form-control" min="0"
+              [ngModel]="currentMileage()" (ngModelChange)="currentMileage.set($event)" name="mileage" />
+            <span class="input-group-text">km</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Notas (opcional, una por línea)</label>
+        <textarea class="form-control" rows="3" placeholder="Ej: Ruido extraño en el motor"
+          [ngModel]="clientNotes()" (ngModelChange)="clientNotes.set($event)" name="notes"></textarea>
+      </div>
+
+      <div class="card bg-body-secondary border-0 mb-3">
+        <div class="card-body">
+          <h6 class="fw-semibold">Resumen</h6>
+          <ul class="list-unstyled mb-0">
+            <li><strong>Fecha:</strong> {{ appointmentDate() }}</li>
+            <li><strong>Horario:</strong> {{ selectedSlot()?.startTime }} - {{ selectedSlot()?.endTime }}</li>
+            <li><strong>Tipo:</strong> {{ selectedType() }}</li>
+            <li><strong>Kilometraje:</strong> {{ currentMileage() }} km</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <button class="btn btn-outline-secondary" (click)="goBack()">
+          <i class="bi bi-arrow-left me-1"></i>Anterior
+        </button>
+        <button class="btn btn-primary" [disabled]="loading()" (click)="submitAppointment()">
+          @if (loading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          <i class="bi bi-check-circle me-1"></i>Confirmar cita
+        </button>
+      </div>
+    </div>
+  </div>
+}

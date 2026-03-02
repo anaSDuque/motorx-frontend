@@ -1,0 +1,76 @@
+<div class="register-wrapper d-flex align-items-center justify-content-center min-vh-100">
+  <div class="card register-card shadow-lg border-0">
+    <div class="card-body p-5">
+      <div class="text-center mb-4">
+        <i class="bi bi-gear-wide-connected display-3 text-motorx-primary"></i>
+        <h2 class="mt-2 fw-bold">Crear cuenta</h2>
+        <p class="text-muted">Regístrate en MotorX</p>
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger py-2" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onRegister()">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nombre completo</label>
+          <input type="text" class="form-control" id="name" placeholder="Juan Pérez"
+            [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" required
+            [class.is-invalid]="fieldErrors()['name']" />
+          @if (fieldErrors()['name']) {
+            <div class="invalid-feedback">{{ fieldErrors()['name'] }}</div>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="dni" class="form-label">Documento de identidad</label>
+          <input type="text" class="form-control" id="dni" placeholder="1234567890"
+            [ngModel]="dni()" (ngModelChange)="dni.set($event)" name="dni" required
+            [class.is-invalid]="fieldErrors()['dni']" />
+          @if (fieldErrors()['dni']) {
+            <div class="invalid-feedback">{{ fieldErrors()['dni'] }}</div>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Correo electrónico</label>
+          <input type="email" class="form-control" id="email" placeholder="correo@ejemplo.com"
+            [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" required
+            [class.is-invalid]="fieldErrors()['email']" />
+          @if (fieldErrors()['email']) {
+            <div class="invalid-feedback">{{ fieldErrors()['email'] }}</div>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="password" placeholder="Mínimo 6 caracteres"
+            [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required
+            [class.is-invalid]="fieldErrors()['password']" />
+          @if (fieldErrors()['password']) {
+            <div class="invalid-feedback">{{ fieldErrors()['password'] }}</div>
+          }
+        </div>
+        <div class="mb-3">
+          <label for="phone" class="form-label">Teléfono</label>
+          <input type="tel" class="form-control" id="phone" placeholder="+57 310 1234567"
+            [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" required
+            [class.is-invalid]="fieldErrors()['phone']" />
+          @if (fieldErrors()['phone']) {
+            <div class="invalid-feedback">{{ fieldErrors()['phone'] }}</div>
+          }
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Crear cuenta
+        </button>
+      </form>
+
+      <div class="text-center mt-4">
+        <span class="text-muted">¿Ya tienes cuenta?</span>
+        <a routerLink="/login" class="text-decoration-none text-motorx-primary ms-1">Inicia sesión</a>
+      </div>
+    </div>
+  </div>
+</div>

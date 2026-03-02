@@ -1,0 +1,72 @@
+<div class="container-fluid py-4">
+  <h2 class="mb-4"><i class="bi bi-people"></i> Gestión de Usuarios</h2>
+
+  @if (success()) {
+    <div class="alert alert-success alert-dismissible fade show">
+      {{ success() }}
+      <button type="button" class="btn-close" (click)="success.set('')"></button>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set('')"></button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>{{ user.id }}</td>
+              <td>{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td><span class="badge" [class]="getRoleBadge(user.role)">{{ user.role }}</span></td>
+              <td>
+                @if (user.accountLocked) {
+                  <span class="badge bg-danger">Bloqueado</span>
+                } @else {
+                  <span class="badge bg-success">Activo</span>
+                }
+              </td>
+              <td class="text-end">
+                @if (user.accountLocked) {
+                  <button class="btn btn-sm btn-outline-success me-1" (click)="unblockUser(user.id)" title="Desbloquear">
+                    <i class="bi bi-unlock"></i>
+                  </button>
+                } @else {
+                  <button class="btn btn-sm btn-outline-warning me-1" (click)="blockUser(user.id)" title="Bloquear">
+                    <i class="bi bi-lock"></i>
+                  </button>
+                }
+                <button class="btn btn-sm btn-outline-danger" (click)="deleteUser(user.id)" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
