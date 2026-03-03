@@ -1,0 +1,96 @@
+<div class="container-fluid py-4">
+  <h2 class="mb-4"><i class="bi bi-car-front"></i> Gestión de Vehículos</h2>
+
+  @if (success()) {
+    <div class="alert alert-success alert-dismissible fade show">
+      {{ success() }}
+      <button type="button" class="btn-close" (click)="success.set('')"></button>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set('')"></button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Placa</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Año</th>
+            <th>Cilindrada</th>
+            <th>Propietario</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (vehicle of vehicles(); track vehicle.id) {
+            <tr>
+              <td>{{ vehicle.id }}</td>
+              <td><span class="fw-bold">{{ vehicle.licensePlate }}</span></td>
+              <td>{{ vehicle.brand }}</td>
+              <td>{{ vehicle.model }}</td>
+              <td>{{ vehicle.yearOfManufacture }}</td>
+              <td>{{ vehicle.cylinderCapacity }} cc</td>
+              <td>{{ vehicle.ownerEmail }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" (click)="openTransfer(vehicle.id)" title="Transferir propiedad">
+                  <i class="bi bi-arrow-left-right"></i> Transferir
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">No hay vehículos registrados</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Transfer Modal -->
+@if (showTransferModal()) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal d-block fade show" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Transferir Propiedad</h5>
+          <button type="button" class="btn-close" (click)="cancelTransfer()"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label" for="newOwnerId">ID del nuevo propietario</label>
+          <input
+            type="number"
+            id="newOwnerId"
+            class="form-control"
+            [ngModel]="newOwnerId()"
+            (ngModelChange)="newOwnerId.set($event)"
+            placeholder="Ej: 5"
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="cancelTransfer()">Cancelar</button>
+          <button class="btn btn-primary" (click)="confirmTransfer()" [disabled]="transferring() || !newOwnerId()">
+            @if (transferring()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Confirmar Transferencia
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

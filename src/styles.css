@@ -1,1 +1,198 @@
-/* You can add global styles to this file, and also import other style files */
+/* MotorX Global Styles — Light & Dark Theme */
+
+:root,
+[data-theme='light'] {
+  /* Brand Colors */
+  --mx-primary: #1565c0;
+  --mx-primary-hover: #0d47a1;
+  --mx-primary-light: #e3f2fd;
+  --mx-secondary: #d32f2f;
+  --mx-secondary-hover: #b71c1c;
+  --mx-dark: #1a1a2e;
+  --mx-accent: #0288d1;
+
+  /* Backgrounds */
+  --mx-bg: #f5f7fa;
+  --mx-bg-card: #ffffff;
+  --mx-bg-sidebar: #ffffff;
+  --mx-bg-input: #ffffff;
+
+  /* Text */
+  --mx-text: #212529;
+  --mx-text-muted: #6c757d;
+  --mx-text-light: #ffffff;
+
+  /* Borders */
+  --mx-border: #dee2e6;
+  --mx-border-light: #e9ecef;
+
+  /* Status */
+  --mx-success: #2e7d32;
+  --mx-warning: #f57f17;
+  --mx-danger: #c62828;
+  --mx-info: #0277bd;
+
+  /* Shadows */
+  --mx-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --mx-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='dark'] {
+  --mx-primary: #42a5f5;
+  --mx-primary-hover: #64b5f6;
+  --mx-primary-light: #1a2332;
+  --mx-secondary: #ef5350;
+  --mx-secondary-hover: #e57373;
+  --mx-dark: #0d1117;
+  --mx-accent: #4fc3f7;
+
+  --mx-bg: #0d1117;
+  --mx-bg-card: #161b22;
+  --mx-bg-sidebar: #161b22;
+  --mx-bg-input: #21262d;
+
+  --mx-text: #e6edf3;
+  --mx-text-muted: #8b949e;
+  --mx-text-light: #ffffff;
+
+  --mx-border: #30363d;
+  --mx-border-light: #21262d;
+
+  --mx-success: #66bb6a;
+  --mx-warning: #ffca28;
+  --mx-danger: #ef5350;
+  --mx-info: #4fc3f7;
+
+  --mx-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --mx-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Global resets */
+body {
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--mx-bg);
+  color: var(--mx-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Card overrides */
+.card {
+  background-color: var(--mx-bg-card);
+  border-color: var(--mx-border);
+  box-shadow: var(--mx-shadow);
+}
+
+/* Button overrides */
+.btn-primary {
+  background-color: var(--mx-primary) !important;
+  border-color: var(--mx-primary) !important;
+  color: var(--mx-text-light) !important;
+}
+.btn-primary:hover {
+  background-color: var(--mx-primary-hover) !important;
+  border-color: var(--mx-primary-hover) !important;
+}
+
+.btn-danger {
+  background-color: var(--mx-secondary) !important;
+  border-color: var(--mx-secondary) !important;
+}
+.btn-danger:hover {
+  background-color: var(--mx-secondary-hover) !important;
+  border-color: var(--mx-secondary-hover) !important;
+}
+
+.btn-outline-primary {
+  color: var(--mx-primary) !important;
+  border-color: var(--mx-primary) !important;
+}
+.btn-outline-primary:hover {
+  background-color: var(--mx-primary) !important;
+  color: var(--mx-text-light) !important;
+}
+
+/* Navbar */
+.navbar-motorx {
+  background-color: var(--mx-dark) !important;
+  box-shadow: var(--mx-shadow);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  background-color: var(--mx-bg-input);
+  border-color: var(--mx-border);
+  color: var(--mx-text);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--mx-primary);
+  box-shadow: 0 0 0 0.2rem rgba(21, 101, 192, 0.25);
+}
+
+/* Tables */
+.table {
+  color: var(--mx-text);
+}
+.table thead th {
+  background-color: var(--mx-primary);
+  color: var(--mx-text-light);
+  border-color: var(--mx-primary);
+}
+[data-theme='dark'] .table-striped > tbody > tr:nth-of-type(odd) {
+  --bs-table-bg: var(--mx-bg-input);
+}
+
+/* Badge helpers */
+.badge-scheduled {
+  background-color: var(--mx-info) !important;
+}
+.badge-in-progress {
+  background-color: var(--mx-warning) !important;
+  color: #212529 !important;
+}
+.badge-completed {
+  background-color: var(--mx-success) !important;
+}
+.badge-cancelled,
+.badge-rejected {
+  background-color: var(--mx-danger) !important;
+}
+.badge-no-show {
+  background-color: var(--mx-text-muted) !important;
+}
+
+/* Modal */
+.modal-content {
+  background-color: var(--mx-bg-card);
+  color: var(--mx-text);
+  border-color: var(--mx-border);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--mx-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mx-text-muted);
+  border-radius: 4px;
+}
+
+/* Utility */
+.text-motorx-primary {
+  color: var(--mx-primary) !important;
+}
+.text-motorx-secondary {
+  color: var(--mx-secondary) !important;
+}
+.bg-motorx-primary {
+  background-color: var(--mx-primary) !important;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+

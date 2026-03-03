@@ -1,0 +1,8 @@
+.quick-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.quick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--mx-shadow-lg);
+}

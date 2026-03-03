@@ -1,0 +1,7 @@
+.vehicle-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.vehicle-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mx-shadow-lg);
+}
