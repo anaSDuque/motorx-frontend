@@ -26,9 +26,14 @@
                 placeholder="correo@ejemplo.com"
                 [ngModel]="email()"
                 (ngModelChange)="email.set($event)"
+                (blur)="emailTouched.set(true)"
                 name="email"
                 required
+                [class.is-invalid]="emailTouched() && !email().trim()"
               />
+              @if (emailTouched() && !email().trim()) {
+                <div class="invalid-feedback">El correo electrónico es obligatorio</div>
+              }
             </div>
           </div>
           <div class="mb-3">
@@ -42,9 +47,14 @@
                 placeholder="Tu contraseña"
                 [ngModel]="password()"
                 (ngModelChange)="password.set($event)"
+                (blur)="passwordTouched.set(true)"
                 name="password"
                 required
+                [class.is-invalid]="passwordTouched() && !password()"
               />
+              @if (passwordTouched() && !password()) {
+                <div class="invalid-feedback">La contraseña es obligatoria</div>
+              }
             </div>
           </div>
           <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">

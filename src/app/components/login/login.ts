@@ -22,7 +22,18 @@ export class Login {
   protected readonly error = signal('');
   protected readonly needs2FA = signal(false);
 
+  protected readonly emailTouched = signal(false);
+  protected readonly passwordTouched = signal(false);
+
   protected onLogin(): void {
+    this.emailTouched.set(true);
+    this.passwordTouched.set(true);
+
+    if (!this.email().trim() || !this.password()) {
+      this.error.set('Completa todos los campos del formulario');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set('');
 
@@ -38,7 +49,18 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Credenciales inválidas');
+        let msg = 'Credenciales inválidas';
+        if (typeof err.error === 'string') {
+          try {
+            const parsed = JSON.parse(err.error);
+            msg = parsed.message ?? msg;
+          } catch {
+            msg = err.error || msg;
+          }
+        } else if (err.error?.message) {
+          msg = err.error.message;
+        }
+        this.error.set(msg);
       },
     });
   }

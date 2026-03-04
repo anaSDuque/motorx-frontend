@@ -8,3 +8,10 @@
   border-radius: 16px;
   background-color: var(--mx-bg-card);
 }
+
+.pwd-hints small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.8;
+}

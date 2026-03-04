@@ -115,7 +115,15 @@ export class CreateAppointment implements OnInit {
       .getAvailableSlots(this.appointmentDate(), this.selectedType() as AppointmentType)
       .subscribe({
         next: (res) => {
-          this.availableSlots.set(res.availableSlots);
+          let slots = res.availableSlots;
+          // Filter out past time slots when the selected date is today
+          const todayStr = new Date().toISOString().split('T')[0];
+          if (this.appointmentDate() === todayStr) {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            slots = slots.filter((slot) => slot.startTime > currentTime);
+          }
+          this.availableSlots.set(slots);
           this.loadingSlots.set(false);
         },
         error: (err) => {
@@ -170,8 +178,6 @@ export class CreateAppointment implements OnInit {
   }
 
   protected get minDate(): string {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
   }
 }
