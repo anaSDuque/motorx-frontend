@@ -2,7 +2,7 @@ import { Injectable, signal, computed, PLATFORM_ID, inject } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, map } from 'rxjs';
 import { BASE_API } from './api.config';
 import {
   LoginRequestDTO,
@@ -32,7 +32,15 @@ export class AuthService {
   readonly isAdmin = computed(() => this._currentUser()?.role === Role.ADMIN);
 
   login(dto: LoginRequestDTO): Observable<AuthResponseDTO | { message: string }> {
-    return this.http.post<AuthResponseDTO | { message: string }>(`${BASE_API}/auth/login`, dto);
+    return this.http.post(`${BASE_API}/auth/login`, dto, { responseType: 'text' }).pipe(
+      map((text) => {
+        try {
+          return JSON.parse(text) as AuthResponseDTO;
+        } catch {
+          return { message: text };
+        }
+      })
+    );
   }
 
   verify2FA(dto: Verify2FADTO): Observable<AuthResponseDTO> {

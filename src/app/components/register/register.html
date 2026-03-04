@@ -14,52 +14,129 @@
       }
 
       <form (ngSubmit)="onRegister()">
+        <!-- Nombre -->
         <div class="mb-3">
           <label for="name" class="form-label">Nombre completo</label>
           <input type="text" class="form-control" id="name" placeholder="Juan Pérez"
             [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" required
-            [class.is-invalid]="fieldErrors()['name']" />
-          @if (fieldErrors()['name']) {
+            (blur)="nameTouched.set(true)"
+            [class.is-invalid]="(nameTouched() && !name().trim()) || fieldErrors()['name']" />
+          @if (nameTouched() && !name().trim()) {
+            <div class="invalid-feedback">El nombre es obligatorio</div>
+          } @else if (fieldErrors()['name']) {
             <div class="invalid-feedback">{{ fieldErrors()['name'] }}</div>
           }
         </div>
+
+        <!-- DNI -->
         <div class="mb-3">
           <label for="dni" class="form-label">Documento de identidad</label>
           <input type="text" class="form-control" id="dni" placeholder="1234567890"
             [ngModel]="dni()" (ngModelChange)="dni.set($event)" name="dni" required
-            [class.is-invalid]="fieldErrors()['dni']" />
-          @if (fieldErrors()['dni']) {
+            (blur)="dniTouched.set(true)"
+            [class.is-invalid]="(dniTouched() && !dni().trim()) || fieldErrors()['dni']" />
+          @if (dniTouched() && !dni().trim()) {
+            <div class="invalid-feedback">El documento es obligatorio</div>
+          } @else if (fieldErrors()['dni']) {
             <div class="invalid-feedback">{{ fieldErrors()['dni'] }}</div>
           }
         </div>
+
+        <!-- Email -->
         <div class="mb-3">
           <label for="email" class="form-label">Correo electrónico</label>
           <input type="email" class="form-control" id="email" placeholder="correo@ejemplo.com"
             [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" required
-            [class.is-invalid]="fieldErrors()['email']" />
-          @if (fieldErrors()['email']) {
+            (blur)="emailTouched.set(true)"
+            [class.is-invalid]="(emailTouched() && !email().trim()) || fieldErrors()['email']" />
+          @if (emailTouched() && !email().trim()) {
+            <div class="invalid-feedback">El correo electrónico es obligatorio</div>
+          } @else if (fieldErrors()['email']) {
             <div class="invalid-feedback">{{ fieldErrors()['email'] }}</div>
           }
         </div>
+
+        <!-- Contraseña -->
         <div class="mb-3">
           <label for="password" class="form-label">Contraseña</label>
-          <input type="password" class="form-control" id="password" placeholder="Mínimo 6 caracteres"
-            [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required
-            [class.is-invalid]="fieldErrors()['password']" />
-          @if (fieldErrors()['password']) {
-            <div class="invalid-feedback">{{ fieldErrors()['password'] }}</div>
+          <div class="input-group">
+            <input [type]="showPassword() ? 'text' : 'password'" class="form-control" id="password"
+              placeholder="Escribe tu contraseña"
+              [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required
+              (blur)="passwordTouched.set(true)"
+              [class.is-invalid]="(passwordTouched() && !password()) || fieldErrors()['password']" />
+            <button type="button" class="btn btn-outline-secondary" (click)="showPassword.set(!showPassword())">
+              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+          @if (passwordTouched() && !password()) {
+            <div class="text-danger small mt-1">La contraseña es obligatoria</div>
+          } @else if (fieldErrors()['password']) {
+            <div class="text-danger small mt-1">{{ fieldErrors()['password'] }}</div>
+          }
+          @if (password()) {
+            <div class="pwd-hints mt-2">
+              <small [class.text-success]="pwdHasMinLength()" [class.text-danger]="!pwdHasMinLength()">
+                <i class="bi" [class.bi-check-circle-fill]="pwdHasMinLength()" [class.bi-x-circle-fill]="!pwdHasMinLength()"></i>
+                Mínimo 8 caracteres
+              </small><br>
+              <small [class.text-success]="pwdHasUppercase()" [class.text-danger]="!pwdHasUppercase()">
+                <i class="bi" [class.bi-check-circle-fill]="pwdHasUppercase()" [class.bi-x-circle-fill]="!pwdHasUppercase()"></i>
+                Al menos una letra mayúscula
+              </small><br>
+              <small [class.text-success]="pwdHasNumber()" [class.text-danger]="!pwdHasNumber()">
+                <i class="bi" [class.bi-check-circle-fill]="pwdHasNumber()" [class.bi-x-circle-fill]="!pwdHasNumber()"></i>
+                Al menos un número
+              </small><br>
+              <small [class.text-success]="pwdHasSpecial()" [class.text-danger]="!pwdHasSpecial()">
+                <i class="bi" [class.bi-check-circle-fill]="pwdHasSpecial()" [class.bi-x-circle-fill]="!pwdHasSpecial()"></i>
+                Al menos un símbolo especial
+              </small>
+            </div>
           }
         </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="mb-3">
+          <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
+          <div class="input-group">
+            <input [type]="showConfirmPassword() ? 'text' : 'password'" class="form-control" id="confirmPassword"
+              placeholder="Repite tu contraseña"
+              [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" name="confirmPassword" required
+              (blur)="confirmPasswordTouched.set(true)"
+              [class.is-invalid]="confirmPasswordTouched() && !passwordsMatch()" />
+            <button type="button" class="btn btn-outline-secondary" (click)="showConfirmPassword.set(!showConfirmPassword())">
+              <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()"></i>
+            </button>
+          </div>
+          @if (confirmPasswordTouched() && confirmPassword() && !passwordsMatch()) {
+            <div class="text-danger small mt-1">Las contraseñas no coinciden</div>
+          } @else if (confirmPasswordTouched() && !confirmPassword()) {
+            <div class="text-danger small mt-1">Confirma tu contraseña</div>
+          }
+        </div>
+
+        <!-- Teléfono -->
         <div class="mb-3">
           <label for="phone" class="form-label">Teléfono</label>
-          <input type="tel" class="form-control" id="phone" placeholder="+57 310 1234567"
-            [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" required
-            [class.is-invalid]="fieldErrors()['phone']" />
-          @if (fieldErrors()['phone']) {
-            <div class="invalid-feedback">{{ fieldErrors()['phone'] }}</div>
+          <div class="input-group">
+            <span class="input-group-text">
+              <span class="fi fi-co me-1" style="font-size:1.1em;">🇨🇴</span> +57
+            </span>
+            <input type="tel" class="form-control" id="phone" placeholder="310 1234567"
+              [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" required
+              (blur)="phoneTouched.set(true)"
+              [class.is-invalid]="(phoneTouched() && !phone().trim()) || fieldErrors()['phone']" />
+          </div>
+          @if (phoneTouched() && !phone().trim()) {
+            <div class="text-danger small mt-1">El teléfono es obligatorio</div>
+          } @else if (fieldErrors()['phone']) {
+            <div class="text-danger small mt-1">{{ fieldErrors()['phone'] }}</div>
           }
         </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">
+
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-2"
+          [disabled]="loading() || (password() && !pwdValid()) || (confirmPassword() && !passwordsMatch())">
           @if (loading()) {
             <span class="spinner-border spinner-border-sm me-2"></span>
           }
