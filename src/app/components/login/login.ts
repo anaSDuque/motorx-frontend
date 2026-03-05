@@ -3,17 +3,21 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Role } from '../../models';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationService } from '../../services/notification.service';
+import { MathCaptcha } from '../math-captcha/math-captcha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe, MathCaptcha],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
 
   protected readonly email = signal('');
   protected readonly password = signal('');
@@ -21,6 +25,12 @@ export class Login {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly needs2FA = signal(false);
+  protected readonly captchaSolved = signal(false);
+  protected readonly showPassword = signal(false);
+
+  protected toggleShowPassword(): void {
+    this.showPassword.update((val) => !val);
+  }
 
   protected onLogin(): void {
     this.loading.set(true);
@@ -38,7 +48,7 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Credenciales inválidas');
+        this.error.set(this.notificationService.handleHttpError(err));
       },
     });
   }
@@ -54,7 +64,7 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Código inválido o expirado');
+        this.error.set(this.notificationService.handleHttpError(err));
       },
     });
   }

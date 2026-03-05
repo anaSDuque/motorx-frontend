@@ -1,100 +1,139 @@
-<div class="login-wrapper d-flex align-items-center justify-content-center min-vh-100">
-  <div class="card login-card shadow-lg border-0">
-    <div class="card-body p-5">
-      <div class="text-center mb-4">
-        <i class="bi bi-gear-wide-connected display-3 text-motorx-primary"></i>
-        <h2 class="mt-2 fw-bold">MotorX</h2>
-        <p class="text-muted">Inicia sesión en tu cuenta</p>
+<div class="login-container position-relative">
+  <!-- Absolute About Us Link -->
+  <a routerLink="/about-us"
+    class="btn btn-sm btn-outline-primary position-absolute top-0 end-0 m-4 z-3 rounded-pill px-3 shadow-sm bg-white">
+    <i class="bi bi-info-circle me-2"></i>{{ 'nav.aboutUs' | translate }}
+  </a>
+
+  <!-- Visual Branding Side -->
+  <div class="login-visual-section d-none d-lg-flex">
+    <div class="visual-content animate-in">
+      <i class="bi bi-gear-wide-connected display-1 mb-4"></i>
+      <h1 class="visual-title tracking-tight">Motor<span class="text-white">X</span></h1>
+      <p class="visual-tagline">{{ 'login.brandSubtitle' | translate }}</p>
+
+      <div class="mt-5 text-start opacity-75">
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+          <span>{{ 'login.feature1' | translate }}</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+          <span>{{ 'login.feature2' | translate }}</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+          <span>{{ 'login.feature3' | translate }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="login-form-section">
+    <div class="login-form-card animate-in">
+      <!-- Logo only for mobile -->
+      <div class="text-center d-lg-none mb-5">
+        <i class="bi bi-gear-wide-connected display-3 text-motorx-primary mb-2"></i>
+        <h2 class="fw-bold tracking-tight">Motor<span class="text-motorx-primary">X</span></h2>
+      </div>
+
+      <div class="mb-5">
+        <h2 class="fw-bold fs-1 tracking-tight mb-2">{{ 'login.title' | translate }}</h2>
+        <p class="text-muted">{{ 'login.subtitle' | translate }}</p>
       </div>
 
       @if (error()) {
-        <div class="alert alert-danger py-2" role="alert">
-          <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
-        </div>
+      <div class="alert alert-danger py-3 border-0 rounded-4 mb-4 d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-circle-fill fs-5 me-3"></i>
+        <div>{{ error() }}</div>
+      </div>
       }
 
       @if (!needs2FA()) {
-        <form (ngSubmit)="onLogin()">
-          <div class="mb-3">
-            <label for="email" class="form-label">Correo electrónico</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                placeholder="correo@ejemplo.com"
-                [ngModel]="email()"
-                (ngModelChange)="email.set($event)"
-                name="email"
-                required
-              />
-            </div>
+      <form (ngSubmit)="onLogin()">
+        <div class="mb-4">
+          <label for="email" class="form-label">{{ 'login.email' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-envelope text-muted"></i>
+            </span>
+            <input type="email" class="form-control border-start-0 ps-1" id="email"
+              [placeholder]="'login.emailPlaceholder' | translate" [ngModel]="email()"
+              (ngModelChange)="email.set($event)" name="email" required />
           </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-lock"></i></span>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                placeholder="Tu contraseña"
-                [ngModel]="password()"
-                (ngModelChange)="password.set($event)"
-                name="password"
-                required
-              />
-            </div>
+        </div>
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <label for="password" class="form-label">{{ 'login.password' | translate }}</label>
+            <a routerLink="/forgot-password" class="text-decoration-none small text-motorx-primary mb-2">
+              {{ 'login.forgotPassword' | translate }}
+            </a>
           </div>
-          <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">
-            @if (loading()) {
-              <span class="spinner-border spinner-border-sm me-2"></span>
-            }
-            Iniciar sesión
-          </button>
-        </form>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-lock text-muted"></i>
+            </span>
+            <input [type]="showPassword() ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-1"
+              id="password" placeholder="********" [ngModel]="password()" (ngModelChange)="password.set($event)"
+              name="password" required />
+            <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button"
+              (click)="toggleShowPassword()" tabindex="-1">
+              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-4">
+          <app-math-captcha (solved)="captchaSolved.set($event)"></app-math-captcha>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-3 mt-2" [disabled]="loading() || !captchaSolved()">
+          @if (loading()) {
+          <span class="spinner-border spinner-border-sm"></span>
+          } @else {
+          <span>{{ 'login.loginButton' | translate }}</span>
+          <i class="bi bi-arrow-right ms-2"></i>
+          }
+        </button>
+      </form>
       } @else {
-        <form (ngSubmit)="onVerify2FA()">
-          <p class="text-center text-muted mb-3">
-            <i class="bi bi-shield-lock me-1"></i>
-            Ingresa el código de 6 dígitos enviado a tu correo
-          </p>
-          <div class="mb-3">
-            <label for="code" class="form-label">Código de verificación</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-key"></i></span>
-              <input
-                type="text"
-                class="form-control text-center fs-4 letter-spacing"
-                id="code"
-                placeholder="000000"
-                maxlength="6"
-                [ngModel]="code2FA()"
-                (ngModelChange)="code2FA.set($event)"
-                name="code"
-                required
-              />
-            </div>
+      <form (ngSubmit)="onVerify2FA()">
+        <div class="mb-4 text-center">
+          <div class="bg-primary-light p-3 rounded-circle d-inline-block mb-3">
+            <i class="bi bi-shield-lock-fill text-motorx-primary fs-2"></i>
           </div>
-          <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">
-            @if (loading()) {
-              <span class="spinner-border spinner-border-sm me-2"></span>
-            }
-            Verificar código
-          </button>
-        </form>
+          <h3 class="fw-bold">{{ 'login.twoFaTitle' | translate }}</h3>
+          <p class="text-muted small">{{ 'login.twoFaSubtitle' | translate }}</p>
+        </div>
+
+        <div class="mb-4">
+          <label for="code" class="form-label text-uppercase extra-small fw-bold tracking-wider mb-2 opacity-75">{{
+            'login.twoFaCodeLabel' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-hash text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-1 py-2 fw-medium text-center tracking-widest"
+              id="code" placeholder="000000" maxlength="6" [ngModel]="code2FA()" (ngModelChange)="code2FA.set($event)"
+              name="code" required autocomplete="one-time-code" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-3" [disabled]="loading()">
+          @if (loading()) {
+          <span class="spinner-border spinner-border-sm"></span>
+          } @else {
+          <span>{{ 'login.verifyButton' | translate }}</span>
+          <i class="bi bi-check2-circle ms-2"></i>
+          }
+        </button>
+      </form>
       }
 
-      <div class="text-center mt-4">
-        <a routerLink="/forgot-password" class="text-decoration-none text-motorx-primary">
-          ¿Olvidaste tu contraseña?
-        </a>
-      </div>
-      <div class="text-center mt-2">
-        <span class="text-muted">¿No tienes cuenta?</span>
-        <a routerLink="/register" class="text-decoration-none text-motorx-primary ms-1">
-          Regístrate
+      <div class="text-center mt-5 pt-3">
+        <span class="text-muted">{{ 'login.noAccount' | translate }}</span>
+        <a routerLink="/register" class="text-decoration-none fw-bold text-motorx-primary ms-2">
+          {{ 'login.registerHere' | translate }}
         </a>
       </div>
     </div>

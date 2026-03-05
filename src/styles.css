@@ -67,12 +67,17 @@
   --mx-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
+:root {
+  --mx-font-multiplier: 1;
+}
+
 /* Global resets */
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--mx-bg);
   color: var(--mx-text);
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: calc(1rem * var(--mx-font-multiplier));
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1), font-size 0.2s ease;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -80,36 +85,51 @@ body {
 /* Card overrides with Glassmorphism */
 .card {
   background-color: var(--mx-bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--mx-border);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--mx-shadow);
-  border-radius: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 24px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+[data-theme='light'] .card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px);
   box-shadow: var(--mx-shadow-lg);
 }
 
 /* Button overrides */
 .btn {
-  border-radius: 12px;
-  padding: 10px 24px;
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 14px;
+  padding: 12px 28px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-primary {
-  background-color: var(--mx-primary) !important;
-  border-color: var(--mx-primary) !important;
+  background: linear-gradient(135deg, var(--mx-primary) 0%, var(--mx-primary-hover) 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px 0 rgba(26, 115, 232, 0.39);
   color: #fff !important;
 }
 
 .btn-primary:hover {
-  background-color: var(--mx-primary-hover) !important;
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.23);
+  filter: brightness(1.1);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 /* Navbar */
@@ -146,10 +166,26 @@ body {
   font-weight: 600;
 }
 
-.badge-scheduled { background-color: var(--mx-info) !important; color: #fff; }
-.badge-in-progress { background-color: var(--mx-warning) !important; color: #000 !important; }
-.badge-completed { background-color: var(--mx-success) !important; color: #fff; }
-.badge-cancelled, .badge-rejected { background-color: var(--mx-danger) !important; color: #fff; }
+.badge-scheduled {
+  background-color: var(--mx-info) !important;
+  color: #fff;
+}
+
+.badge-in-progress {
+  background-color: var(--mx-warning) !important;
+  color: #000 !important;
+}
+
+.badge-completed {
+  background-color: var(--mx-success) !important;
+  color: #fff;
+}
+
+.badge-cancelled,
+.badge-rejected {
+  background-color: var(--mx-danger) !important;
+  color: #fff;
+}
 
 /* Dashboard layout specific */
 .mx-stat-card {
@@ -158,11 +194,17 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-main > * {
+main>* {
   animation: fadeIn 0.5s ease-out forwards;
 }
-

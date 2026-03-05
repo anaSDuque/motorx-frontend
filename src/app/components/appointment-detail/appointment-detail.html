@@ -1,0 +1,128 @@
+@if (show && appointment) {
+<div class="modal-backdrop fade show"></div>
+<div class="modal d-block fade show" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg modal-glass">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-motorx-primary">
+                    <i class="bi bi-calendar-event me-2"></i>Detalle de la Cita
+                </h5>
+                <button type="button" class="btn-close" (click)="onClose()"></button>
+            </div>
+
+            <div class="modal-body pt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="badge text-uppercase tracking-wider px-3 py-2" [class]="statusBadgeClass">
+                        {{ statusLabels[appointment.status] }}
+                    </span>
+                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ appointment.appointmentDate }} |
+                        {{ appointment.startTime }}</span>
+                </div>
+
+                <div class="card bg-primary-light border-0 mb-4 rounded-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-bicycle me-2"></i>Vehículo</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="mb-1 text-muted small">Placa</p>
+                                <p class="fw-semibold mb-2 fs-5">{{ appointment.vehiclePlate }}</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1 text-muted small">Marca y Modelo</p>
+                                <p class="fw-medium mb-2">{{ appointment.vehicleBrand }} {{ appointment.vehicleModel }}
+                                </p>
+                            </div>
+                        </div>
+                        @if (appointment.currentMileage) {
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <p class="mb-1 text-muted small">Kilometraje</p>
+                                <p class="fw-medium mb-0">{{ appointment.currentMileage }} km</p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-4 px-2">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <p class="mb-1 text-muted small"><i class="bi bi-wrench me-1"></i>Tipo de Servicio</p>
+                            <p class="fw-medium mb-0">{{ getTypeLabel(appointment.appointmentType) }}</p>
+                        </div>
+                        @if (isAdmin) {
+                        <div class="col-6">
+                            <p class="mb-1 text-muted small"><i class="bi bi-person me-1"></i>Cliente</p>
+                            <p class="fw-medium mb-0">{{ appointment.clientFullName }}</p>
+                        </div>
+                        }
+                        <div class="col-12">
+                            <p class="mb-1 text-muted small"><i class="bi bi-tools me-1"></i>Técnico Asignado</p>
+                            <p class="fw-medium mb-0">
+                                @if (appointment.technicianFullName) {
+                                {{ appointment.technicianFullName }}
+                                } @else {
+                                <span class="fst-italic opacity-50">Sin asignar</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (appointment.clientNotes) {
+                <div class="mb-4 px-2">
+                    <p class="mb-1 text-muted small"><i class="bi bi-chat-left-text me-1"></i>Notas del Cliente</p>
+                    <div class="bg-light p-3 rounded-3 small border">
+                        {{ appointment.clientNotes }}
+                    </div>
+                </div>
+                }
+
+                @if (appointment.adminNotes) {
+                <div class="mb-4 px-2">
+                    <p class="mb-1 text-muted small"><i class="bi bi-chat-left-dots me-1"></i>Notas de Administración
+                    </p>
+                    <div class="bg-warning-subtle p-3 rounded-3 small border border-warning-subtle">
+                        {{ appointment.adminNotes }}
+                    </div>
+                </div>
+                }
+
+                <!-- Cancel Area -->
+                @if (canCancel) {
+                <hr class="my-4">
+                @if (isAdmin) {
+                <div class="mb-3 px-2">
+                    <label class="form-label text-danger fw-semibold small">Motivo de Cancelación (Requerido para
+                        admin)</label>
+                    <textarea class="form-control" rows="2" [ngModel]="cancelReason()"
+                        (ngModelChange)="cancelReason.set($event)" placeholder="Escriba el motivo..."></textarea>
+                </div>
+                }
+                <div class="px-2">
+                    <button class="btn btn-outline-danger w-100" (click)="doCancel()"
+                        [disabled]="isCancelling() || (isAdmin && !cancelReason().trim())">
+                        @if (isCancelling()) {
+                        <span class="spinner-border spinner-border-sm me-2"></span>Cancelando...
+                        } @else {
+                        <i class="bi bi-x-circle me-2"></i>Cancelar Cita
+                        }
+                    </button>
+                    <div class="form-text text-center mt-2 opacity-75">
+                        @if (isAdmin) {
+                        Esta acción enviará una notificación al cliente.
+                        } @else {
+                        Esta acción no se puede deshacer.
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+
+            <div class="modal-footer border-top-0 pt-0">
+                <button class="btn btn-secondary w-100 py-2" (click)="onClose()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
