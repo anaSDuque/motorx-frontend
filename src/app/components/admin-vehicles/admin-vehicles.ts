@@ -8,7 +8,7 @@ import { VehicleResponseDTO } from '../../models';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admin-vehicles.html',
-  styleUrl: './admin-vehicles.css',
+  styleUrls: ['./admin-vehicles.css'],
 })
 export class AdminVehicles implements OnInit {
   private readonly vehicleService = inject(AdminVehicleService);

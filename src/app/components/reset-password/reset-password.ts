@@ -10,7 +10,7 @@ import { NotificationService } from '../../services/notification.service';
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './reset-password.html',
-  styleUrl: './reset-password.css',
+  styleUrls: ['./reset-password.css'],
 })
 export class ResetPassword {
   private readonly passwordResetService = inject(PasswordResetService);
@@ -27,7 +27,6 @@ export class ResetPassword {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly success = signal(false);
-  protected readonly showPassword = signal(false);
 
   protected toggleShowPassword(): void {
     this.showPassword.update((val) => !val);

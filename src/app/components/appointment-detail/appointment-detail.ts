@@ -19,7 +19,7 @@ import { NotificationService } from '../../services/notification.service';
     standalone: true,
     imports: [FormsModule],
     templateUrl: './appointment-detail.html',
-    styleUrl: './appointment-detail.css',
+    styleUrls: ['./appointment-detail.css'],
 })
 export class AppointmentDetailModal {
     @Input() appointment: AppointmentResponseDTO | null = null;

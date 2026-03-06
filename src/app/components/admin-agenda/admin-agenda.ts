@@ -10,7 +10,7 @@ import { AppointmentDetailModal } from '../appointment-detail/appointment-detail
   standalone: true,
   imports: [FormsModule, RouterLink, AppointmentDetailModal],
   templateUrl: './admin-agenda.html',
-  styleUrl: './admin-agenda.css',
+  styleUrls: ['./admin-agenda.css'],
 })
 export class AdminAgenda implements OnInit {
   private readonly appointmentService = inject(AdminAppointmentService);

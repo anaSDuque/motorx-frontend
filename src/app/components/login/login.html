@@ -55,24 +55,24 @@
           <div class="mb-3">
             <label for="email" class="form-label">Correo electrónico</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                placeholder="correo@ejemplo.com"
-                [ngModel]="email()"
-                (ngModelChange)="email.set($event)"
-                (blur)="emailTouched.set(true)"
-                name="email"
-                required
-                [class.is-invalid]="emailTouched() && !email().trim()"
-              />
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="correo@ejemplo.com"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              (blur)="emailTouched.set(true)"
+              name="email"
+              required
+              [class.is-invalid]="emailTouched() && !email().trim()"
+            />
+          </div>
               @if (emailTouched() && !email().trim()) {
                 <div class="invalid-feedback">El correo electrónico es obligatorio</div>
               }
             </div>
-          </div>
           <div class="mb-3">
             <label for="password" class="form-label">Contraseña</label>
             <div class="input-group">
@@ -94,7 +94,7 @@
               }
             </div>
           </div>
-        </div>
+          
         <div class="mb-4">
           <app-math-captcha (solved)="captchaSolved.set($event)"></app-math-captcha>
         </div>

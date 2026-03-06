@@ -12,7 +12,7 @@ import { MathCaptcha } from '../math-captcha/math-captcha';
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe, MathCaptcha],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrls: ['./login.css'],
 })
 export class Login {
   private readonly authService = inject(AuthService);

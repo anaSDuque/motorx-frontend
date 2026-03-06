@@ -12,7 +12,7 @@ import { AppointmentType, APPOINTMENT_TYPE_LABELS } from '../../models/enums';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admin-unplanned.html',
-  styleUrl: './admin-unplanned.css',
+  styleUrls: ['./admin-unplanned.css'],
 })
 export class AdminUnplanned implements OnInit {
   private readonly appointmentService = inject(AdminAppointmentService);
