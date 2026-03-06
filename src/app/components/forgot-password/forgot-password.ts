@@ -10,7 +10,7 @@ import { NotificationService } from '../../services/notification.service';
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.html',
-  styleUrl: './forgot-password.css',
+  styleUrls: ['./forgot-password.css'],
 })
 export class ForgotPassword {
   private readonly passwordResetService = inject(PasswordResetService);
@@ -20,6 +20,7 @@ export class ForgotPassword {
   protected readonly email = signal('');
   protected readonly loading = signal(false);
   protected readonly error = signal('');
+  protected readonly message = signal('');
   protected readonly emailTouched = signal(false);
 
   protected onSubmit(): void {
@@ -36,7 +37,7 @@ export class ForgotPassword {
     this.passwordResetService.requestReset({ email: this.email() }).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/reset-password']);
+        this.message.set('Se envió el correo de restablecimiento. Revisa tu bandeja.');
       },
       error: (err) => {
         this.loading.set(false);

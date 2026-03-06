@@ -9,7 +9,7 @@ import { AppointmentDetailModal } from '../appointment-detail/appointment-detail
   standalone: true,
   imports: [RouterLink, AppointmentDetailModal],
   templateUrl: './appointment-list.html',
-  styleUrl: './appointment-list.css',
+  styleUrls: ['./appointment-list.css'],
 })
 export class AppointmentList implements OnInit {
   private readonly appointmentService = inject(UserAppointmentService);

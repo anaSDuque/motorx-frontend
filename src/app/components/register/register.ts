@@ -12,7 +12,7 @@ import { MathCaptcha } from '../math-captcha/math-captcha';
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe, MathCaptcha],
   templateUrl: './register.html',
-  styleUrl: './register.css',
+  styleUrls: ['./register.css'],
 })
 export class Register {
   private readonly authService = inject(AuthService);
@@ -30,7 +30,6 @@ export class Register {
   protected readonly fieldErrors = signal<Record<string, string>>({});
   protected readonly acceptDataTreatment = signal(false);
   protected readonly captchaSolved = signal(false);
-  protected readonly showPassword = signal(false);
 
   protected toggleShowPassword(): void {
     this.showPassword.update((val) => !val);

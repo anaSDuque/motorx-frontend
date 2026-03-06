@@ -15,7 +15,7 @@ import {
   standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './create-appointment.html',
-  styleUrl: './create-appointment.css',
+  styleUrls: ['./create-appointment.css'],
 })
 export class CreateAppointment implements OnInit {
   private readonly appointmentService = inject(UserAppointmentService);

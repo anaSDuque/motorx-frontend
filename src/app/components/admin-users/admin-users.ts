@@ -7,7 +7,7 @@ import { AdminUserResponseDTO } from '../../models';
   standalone: true,
   imports: [],
   templateUrl: './admin-users.html',
-  styleUrl: './admin-users.css',
+  styleUrls: ['./admin-users.css'],
 })
 export class AdminUsers implements OnInit {
   private readonly userService = inject(AdminUserService);

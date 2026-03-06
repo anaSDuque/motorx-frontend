@@ -8,7 +8,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './layout.html',
-  styleUrl: './layout.css',
+  styleUrls: ['./layout.css'],
 })
 export class Layout {
   protected readonly authService = inject(AuthService);

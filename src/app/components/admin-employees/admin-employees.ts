@@ -14,7 +14,7 @@ import {
   standalone: true,
   imports: [FormsModule],
   templateUrl: './admin-employees.html',
-  styleUrl: './admin-employees.css',
+  styleUrls: ['./admin-employees.css'],
 })
 export class AdminEmployees implements OnInit {
   private readonly employeeService = inject(AdminEmployeeService);

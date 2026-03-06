@@ -7,6 +7,6 @@ import { AccessibilityWidget } from './components/accessibility-widget/accessibi
   selector: 'app-root',
   imports: [RouterOutlet, ToastContainer, AccessibilityWidget],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrls: ['./app.css']
 })
 export class App { }
