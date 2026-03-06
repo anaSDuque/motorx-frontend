@@ -32,7 +32,18 @@ export class Login {
     this.showPassword.update((val) => !val);
   }
 
+  protected readonly emailTouched = signal(false);
+  protected readonly passwordTouched = signal(false);
+
   protected onLogin(): void {
+    this.emailTouched.set(true);
+    this.passwordTouched.set(true);
+
+    if (!this.email().trim() || !this.password()) {
+      this.error.set('Completa todos los campos del formulario');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set('');
 

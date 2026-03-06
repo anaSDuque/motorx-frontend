@@ -51,36 +51,48 @@
       }
 
       @if (!needs2FA()) {
-      <form (ngSubmit)="onLogin()">
-        <div class="mb-4">
-          <label for="email" class="form-label">{{ 'login.email' | translate }}</label>
-          <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 ps-3">
-              <i class="bi bi-envelope text-muted"></i>
-            </span>
-            <input type="email" class="form-control border-start-0 ps-1" id="email"
-              [placeholder]="'login.emailPlaceholder' | translate" [ngModel]="email()"
-              (ngModelChange)="email.set($event)" name="email" required />
+        <form (ngSubmit)="onLogin()">
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                placeholder="correo@ejemplo.com"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                (blur)="emailTouched.set(true)"
+                name="email"
+                required
+                [class.is-invalid]="emailTouched() && !email().trim()"
+              />
+              @if (emailTouched() && !email().trim()) {
+                <div class="invalid-feedback">El correo electrónico es obligatorio</div>
+              }
+            </div>
           </div>
-        </div>
-        <div class="mb-4">
-          <div class="d-flex justify-content-between align-items-center">
-            <label for="password" class="form-label">{{ 'login.password' | translate }}</label>
-            <a routerLink="/forgot-password" class="text-decoration-none small text-motorx-primary mb-2">
-              {{ 'login.forgotPassword' | translate }}
-            </a>
-          </div>
-          <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 ps-3">
-              <i class="bi bi-lock text-muted"></i>
-            </span>
-            <input [type]="showPassword() ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-1"
-              id="password" placeholder="********" [ngModel]="password()" (ngModelChange)="password.set($event)"
-              name="password" required />
-            <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button"
-              (click)="toggleShowPassword()" tabindex="-1">
-              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
-            </button>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                placeholder="Tu contraseña"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                (blur)="passwordTouched.set(true)"
+                name="password"
+                required
+                [class.is-invalid]="passwordTouched() && !password()"
+              />
+              @if (passwordTouched() && !password()) {
+                <div class="invalid-feedback">La contraseña es obligatoria</div>
+              }
+            </div>
           </div>
         </div>
         <div class="mb-4">

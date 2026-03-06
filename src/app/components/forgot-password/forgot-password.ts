@@ -1,6 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
@@ -15,21 +15,28 @@ import { NotificationService } from '../../services/notification.service';
 export class ForgotPassword {
   private readonly passwordResetService = inject(PasswordResetService);
   private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
 
   protected readonly email = signal('');
   protected readonly loading = signal(false);
-  protected readonly message = signal('');
   protected readonly error = signal('');
+  protected readonly emailTouched = signal(false);
 
   protected onSubmit(): void {
+    this.emailTouched.set(true);
+
+    if (!this.email().trim()) {
+      this.error.set('Ingresa tu correo electrónico');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set('');
-    this.message.set('');
 
     this.passwordResetService.requestReset({ email: this.email() }).subscribe({
-      next: (msg) => {
+      next: () => {
         this.loading.set(false);
-        this.message.set('Si el correo existe, se ha enviado un código de recuperación.');
+        this.router.navigate(['/reset-password']);
       },
       error: (err) => {
         this.loading.set(false);
