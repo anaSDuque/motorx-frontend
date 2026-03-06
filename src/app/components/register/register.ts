@@ -2,17 +2,22 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationService } from '../../services/notification.service';
+import { LanguageService } from '../../services/language.service';
+import { MathCaptcha } from '../math-captcha/math-captcha';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe, MathCaptcha],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
 
   protected readonly name = signal('');
   protected readonly dni = signal('');
@@ -23,6 +28,13 @@ export class Register {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly fieldErrors = signal<Record<string, string>>({});
+  protected readonly acceptDataTreatment = signal(false);
+  protected readonly captchaSolved = signal(false);
+  protected readonly showPassword = signal(false);
+
+  protected toggleShowPassword(): void {
+    this.showPassword.update((val) => !val);
+  }
 
   // Touched states
   protected readonly nameTouched = signal(false);
@@ -73,6 +85,11 @@ export class Register {
     this.error.set('');
     this.fieldErrors.set({});
 
+    if (!this.acceptDataTreatment()) {
+      this.error.set('Debe aceptar el tratamiento de sus datos para continuar.');
+      this.loading.set(false);
+      return;
+    }
     const fullPhone = '+57' + this.phone().replace(/\s/g, '');
 
     this.authService
@@ -93,7 +110,7 @@ export class Register {
           if (err.error?.details) {
             this.fieldErrors.set(err.error.details);
           }
-          this.error.set(err.error?.message ?? 'Error al registrarse');
+          this.error.set(this.notificationService.handleHttpError(err));
         },
       });
   }

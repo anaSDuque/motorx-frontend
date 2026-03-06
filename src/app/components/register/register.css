@@ -1,17 +1,92 @@
-.register-wrapper {
-  background: linear-gradient(135deg, var(--mx-primary) 0%, var(--mx-dark) 100%);
-}
-
-.register-card {
+.register-container {
+  display: flex;
+  min-height: 100vh;
   width: 100%;
-  max-width: 480px;
-  border-radius: 16px;
-  background-color: var(--mx-bg-card);
 }
 
-.pwd-hints small {
-  display: inline-flex;
+.register-visual-section {
+  flex: 1.2;
+  background: radial-gradient(circle at center, var(--mx-primary) 0%, var(--mx-dark) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 4px;
-  line-height: 1.8;
+  color: white;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-visual-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4v-4H4v4H0v2h4v4h2v-4h4v-2H6zm30 0v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.register-form-section {
+  flex: 1.5;
+  background-color: var(--mx-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.register-form-card {
+  width: 100%;
+  max-width: 600px;
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 992px) {
+  .register-container {
+    flex-direction: column;
+  }
+
+  .register-visual-section {
+    padding: 3rem 2rem;
+    flex: none;
+    text-align: center;
+  }
+
+  .register-form-section {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.register-content {
+  animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.text-motorx-primary {
+  color: var(--mx-primary);
+  filter: drop-shadow(0 0 8px rgba(26, 115, 232, 0.3));
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: var(--mx-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

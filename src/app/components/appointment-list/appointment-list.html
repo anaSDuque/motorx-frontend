@@ -6,73 +6,79 @@
 </div>
 
 @if (success()) {
-  <div class="alert alert-success alert-dismissible fade show">
-    <i class="bi bi-check-circle me-2"></i>{{ success() }}
-    <button type="button" class="btn-close" (click)="success.set('')"></button>
-  </div>
+<div class="alert alert-success alert-dismissible fade show">
+  <i class="bi bi-check-circle me-2"></i>{{ success() }}
+  <button type="button" class="btn-close" (click)="success.set('')"></button>
+</div>
 }
 @if (error()) {
-  <div class="alert alert-danger alert-dismissible fade show">
-    <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
-    <button type="button" class="btn-close" (click)="error.set('')"></button>
-  </div>
+<div class="alert alert-danger alert-dismissible fade show">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
+  <button type="button" class="btn-close" (click)="error.set('')"></button>
+</div>
 }
 
 @if (loading()) {
-  <div class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2 text-muted">Cargando citas...</p>
-  </div>
+<div class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+  <p class="mt-2 text-muted">Cargando citas...</p>
+</div>
 } @else if (appointments().length === 0) {
-  <div class="text-center py-5">
-    <i class="bi bi-calendar-x display-1 text-muted"></i>
-    <p class="mt-3 text-muted">No tienes citas registradas</p>
-    <a routerLink="/appointments/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1"></i>Agendar mi primera cita
-    </a>
-  </div>
+<div class="text-center py-5">
+  <i class="bi bi-calendar-x display-1 text-muted"></i>
+  <p class="mt-3 text-muted">No tienes citas registradas</p>
+  <a routerLink="/appointments/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Agendar mi primera cita
+  </a>
+</div>
 } @else {
-  <div class="table-responsive">
-    <table class="table table-hover align-middle">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Horario</th>
-          <th>Tipo</th>
-          <th>Vehículo</th>
-          <th>Técnico</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (apt of appointments(); track apt.id) {
-          <tr>
-            <td>{{ apt.appointmentDate }}</td>
-            <td>{{ apt.startTime }} - {{ apt.endTime }}</td>
-            <td>{{ getTypeLabel(apt.appointmentType) }}</td>
-            <td>
-              <span class="fw-semibold">{{ apt.vehiclePlate }}</span>
-              <br>
-              <small class="text-muted">{{ apt.vehicleBrand }} {{ apt.vehicleModel }}</small>
-            </td>
-            <td>{{ apt.technicianFullName ?? 'Por asignar' }}</td>
-            <td>
-              <span class="badge" [class]="getStatusBadgeClass(apt.status)">
-                {{ getStatusLabel(apt.status) }}
-              </span>
-            </td>
-            <td>
-              @if (apt.status === 'SCHEDULED') {
-                <button class="btn btn-sm btn-outline-danger" (click)="cancelAppointment(apt.id)"
-                  title="Cancelar cita">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Horario</th>
+        <th>Tipo</th>
+        <th>Vehículo</th>
+        <th>Técnico</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (apt of appointments(); track apt.id) {
+      <tr>
+        <td>{{ apt.appointmentDate }}</td>
+        <td>{{ apt.startTime }} - {{ apt.endTime }}</td>
+        <td>{{ getTypeLabel(apt.appointmentType) }}</td>
+        <td>
+          <span class="fw-semibold">{{ apt.vehiclePlate }}</span>
+          <br>
+          <small class="text-muted">{{ apt.vehicleBrand }} {{ apt.vehicleModel }}</small>
+        </td>
+        <td>{{ apt.technicianFullName ?? 'Por asignar' }}</td>
+        <td>
+          <span class="badge" [class]="getStatusBadgeClass(apt.status)">
+            {{ getStatusLabel(apt.status) }}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary me-2" (click)="viewDetails(apt)" title="Ver detalles">
+            <i class="bi bi-eye"></i>
+          </button>
+          @if (apt.status === 'SCHEDULED') {
+          <button class="btn btn-sm btn-outline-danger" (click)="cancelAppointment(apt.id)" title="Cancelar cita">
+            <i class="bi bi-x-circle"></i>
+          </button>
+          }
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
 }
+
+<app-appointment-detail [show]="showModal()" [appointment]="selectedAppointment()" (close)="onModalClosed()"
+  (updated)="onAppointmentUpdated()">
+</app-appointment-detail>

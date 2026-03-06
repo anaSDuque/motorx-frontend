@@ -2,16 +2,19 @@ import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.css',
 })
 export class ForgotPassword {
   private readonly passwordResetService = inject(PasswordResetService);
+  private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
   protected readonly email = signal('');
@@ -37,7 +40,7 @@ export class ForgotPassword {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Error al procesar la solicitud');
+        this.error.set(this.notificationService.handleHttpError(err));
       },
     });
   }

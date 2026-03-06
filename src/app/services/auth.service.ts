@@ -33,11 +33,11 @@ export class AuthService {
 
   login(dto: LoginRequestDTO): Observable<AuthResponseDTO | { message: string }> {
     return this.http.post(`${BASE_API}/auth/login`, dto, { responseType: 'text' }).pipe(
-      map((text) => {
+      map((res) => {
         try {
-          return JSON.parse(text) as AuthResponseDTO;
-        } catch {
-          return { message: text };
+          return JSON.parse(res) as AuthResponseDTO;
+        } catch (e) {
+          return { message: res };
         }
       })
     );

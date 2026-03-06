@@ -2,17 +2,20 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.css',
 })
 export class ResetPassword {
   private readonly passwordResetService = inject(PasswordResetService);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
 
   // Code digits — 6 separate boxes
   protected readonly codeDigits = signal<string[]>(['', '', '', '', '', '']);
@@ -24,6 +27,11 @@ export class ResetPassword {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly success = signal(false);
+  protected readonly showPassword = signal(false);
+
+  protected toggleShowPassword(): void {
+    this.showPassword.update((val) => !val);
+  }
 
   // Touched state
   protected readonly passwordTouched = signal(false);
@@ -118,7 +126,7 @@ export class ResetPassword {
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err.error?.message ?? 'Token inválido o expirado');
+          this.error.set(this.notificationService.handleHttpError(err));
         },
       });
   }
