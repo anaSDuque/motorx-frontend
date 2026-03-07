@@ -6,3 +6,40 @@
   transform: translateY(-4px);
   box-shadow: var(--mx-shadow-lg);
 }
+
+/* WhatsApp floating action button */
+.whatsapp-fab {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  background: #25D366;
+  color: #fff;
+  padding: 0.6rem 0.9rem;
+  border-radius: 50px;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.22);
+  z-index: 1100;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.whatsapp-fab:hover {
+  filter: brightness(0.95);
+  text-decoration: none;
+}
+
+.whatsapp-fab i {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 576px) {
+  .whatsapp-fab {
+    padding: 0.55rem;
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    justify-content: center;
+  }
+  .whatsapp-fab span {
+    display: none;
+  }
+}

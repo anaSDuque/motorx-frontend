@@ -37,7 +37,11 @@ export class ForgotPassword {
     this.passwordResetService.requestReset({ email: this.email() }).subscribe({
       next: () => {
         this.loading.set(false);
+        // After requesting a reset, navigate to the reset-password screen
+        // so the user can enter the code and a new password.
+        this.loading.set(false);
         this.message.set('Se envió el correo de restablecimiento. Revisa tu bandeja.');
+        this.router.navigate(['/reset-password'], { queryParams: { email: this.email() } });
       },
       error: (err) => {
         this.loading.set(false);
