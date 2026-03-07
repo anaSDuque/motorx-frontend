@@ -16,8 +16,19 @@ jobs:
 
       - run: npm ci && npm run build
 
-      # 👇 Renombrar index.csr.html
-      - run: mv dist/motorx-front/browser/index.csr.html dist/motorx-front/browser/index.html
+      # 👇 Renombrar index si existe (soporta index.csr.html o index.ssr.html)
+      - run: |
+          if [ -f dist/motorx-front/browser/index.csr.html ]; then
+            mv dist/motorx-front/browser/index.csr.html dist/motorx-front/browser/index.html
+          elif [ -f dist/motorx-front/browser/index.ssr.html ]; then
+            mv dist/motorx-front/browser/index.ssr.html dist/motorx-front/browser/index.html
+          elif [ -f dist/motorx-front/browser/index.html ]; then
+            echo "index.html ya existe"
+          else
+            echo "No se encontró ningún index en dist/motorx-front/browser" >&2
+            ls -la dist/motorx-front/browser || true
+            exit 1
+          fi
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
