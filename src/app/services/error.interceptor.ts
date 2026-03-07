@@ -12,11 +12,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
-            // Don't show toast for login 401 (handled by component), or 2FA flows
+            // Don't show toast for login 401 (handled by component), 2FA flows, or certain harmless endpoints
             const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/register') ||
                 req.url.includes('/auth/verify') || req.url.includes('/password');
 
-            if (!isAuthEndpoint) {
+            const quietEndpoints = ['/check-plate-restriction', '/available-slots'];
+            const isQuiet = quietEndpoints.some((p) => req.url.includes(p));
+
+            if (!isAuthEndpoint && !isQuiet) {
                 const friendlyMessage = notificationService.handleHttpError(error);
                 notificationService.error(friendlyMessage);
             }

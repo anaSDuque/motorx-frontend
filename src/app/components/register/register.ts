@@ -47,6 +47,10 @@ export class Register {
   protected readonly showPassword = signal(false);
   protected readonly showConfirmPassword = signal(false);
 
+  protected toggleShowConfirmPassword(): void {
+    this.showConfirmPassword.update((v) => !v);
+  }
+
   // Password validation
   protected readonly pwdHasUppercase = computed(() => /[A-Z]/.test(this.password()));
   protected readonly pwdHasNumber = computed(() => /[0-9]/.test(this.password()));

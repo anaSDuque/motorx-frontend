@@ -94,7 +94,10 @@
               }
             </div>
           </div>
-          
+          <div class="text-end mb-2">
+            <a routerLink="/forgot-password" class="btn btn-link text-motorx-primary p-0 fw-bold">¿Olvidaste tu contraseña?</a>
+          </div>
+
         <div class="mb-4">
           <app-math-captcha (solved)="captchaSolved.set($event)"></app-math-captcha>
         </div>
@@ -107,6 +110,7 @@
           <i class="bi bi-arrow-right ms-2"></i>
           }
         </button>
+        
       </form>
       } @else {
       <form (ngSubmit)="onVerify2FA()">
@@ -119,15 +123,19 @@
         </div>
 
         <div class="mb-4">
-          <label for="code" class="form-label text-uppercase extra-small fw-bold tracking-wider mb-2 opacity-75">{{
-            'login.twoFaCodeLabel' | translate }}</label>
-          <div class="input-group">
-            <span class="input-group-text bg-transparent border-end-0 ps-3">
-              <i class="bi bi-hash text-muted"></i>
-            </span>
-            <input type="text" class="form-control border-start-0 ps-1 py-2 fw-medium text-center tracking-widest"
-              id="code" placeholder="000000" maxlength="6" [ngModel]="code2FA()" (ngModelChange)="code2FA.set($event)"
-              name="code" required autocomplete="one-time-code" />
+          <label class="form-label text-uppercase extra-small fw-bold tracking-wider mb-2 opacity-75">{{ 'login.verificationCode' | translate }}</label>
+          <div class="d-flex justify-content-center gap-2 code-container">
+            @for (digit of codeDigits(); track $index) {
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="1"
+                class="form-control code-input text-center fw-bold fs-4"
+                [value]="digit"
+                (input)="onCodeInput($index, $event)"
+                (keydown)="onCodeKeydown($index, $event)"
+              />
+            }
           </div>
         </div>
 

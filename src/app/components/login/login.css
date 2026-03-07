@@ -122,3 +122,17 @@
 .letter-spacing {
   letter-spacing: 0.5em;
 }
+
+/* About-us button: keep visible text on hover even with bg-white helper class */
+.login-container > a.btn-outline-primary.bg-white {
+  color: var(--mx-primary);
+  background-color: #ffffff;
+  border-color: rgba(13, 110, 253, 0.25);
+}
+.login-container > a.btn-outline-primary.bg-white:hover,
+.login-container > a.btn-outline-primary.bg-white:focus {
+  background-color: #ffffff !important;
+  color: var(--mx-primary) !important;
+  border-color: rgba(13, 110, 253, 0.4) !important;
+  text-decoration: none;
+}

@@ -33,12 +33,6 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
             placeholder="?" 
             min="0"
             aria-label="Respuesta del captcha" />
-          @if (isSolved() === true) {
-            <i class="bi bi-check-circle-fill status-icon valid-icon"></i>
-          }
-          @if (isSolved() === false && userAnswer() !== null && userAnswer()?.toString() !== '') {
-            <i class="bi bi-x-circle-fill status-icon invalid-icon"></i>
-          }
         </div>
       </div>
       

@@ -90,3 +90,59 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* Make form controls more visible against background */
+.register-form-card .form-control {
+  border: 1.25px solid rgba(0, 0, 0, 0.12);
+  background-color: #fff;
+}
+
+.register-form-card .form-control:focus {
+  box-shadow: none;
+  border-color: var(--mx-primary);
+}
+
+.register-form-card .input-group-text {
+  border: 1.25px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Invalid styles when touched or server-side errors */
+.register-form-card .form-control.is-invalid {
+  border-color: #dc3545;
+}
+.extra-small {
+  font-size: 0.8rem;
+}
+
+/* Make the data-treatment checkbox more visible in the register form */
+.register-form-card .form-check-input {
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
+  background-color: #fff;
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: 0.25rem;
+}
+
+.register-form-card .form-check-input:checked {
+  background-color: var(--mx-primary);
+  border-color: var(--mx-primary);
+}
+
+.register-form-card .form-check-input:focus {
+  box-shadow: 0 0 0 0.15rem rgba(26, 115, 232, 0.12);
+  border-color: var(--mx-primary);
+}
+
+/* Keep About-us button text visible on hover even with bg-white helper class */
+.register-container > a.btn-outline-primary.bg-white {
+  color: var(--mx-primary);
+  background-color: #ffffff;
+  border-color: rgba(13, 110, 253, 0.25);
+}
+.register-container > a.btn-outline-primary.bg-white:hover,
+.register-container > a.btn-outline-primary.bg-white:focus {
+  background-color: #ffffff !important;
+  color: var(--mx-primary) !important;
+  border-color: rgba(13, 110, 253, 0.4) !important;
+  text-decoration: none;
+}

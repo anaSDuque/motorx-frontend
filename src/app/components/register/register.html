@@ -64,10 +64,13 @@
             </span>
             <input type="text" class="form-control border-start-0 ps-1" id="name"
               [placeholder]="'register.namePlaceholder' | translate" [ngModel]="name()"
-              (ngModelChange)="name.set($event)" name="name" required [class.is-invalid]="fieldErrors()['name']" />
+              (ngModelChange)="name.set($event)" (blur)="nameTouched.set(true)" name="name" required
+              [class.is-invalid]="fieldErrors()['name'] || (nameTouched() && !name().trim())" />
           </div>
           @if (fieldErrors()['name']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['name'] }}</div>
+          } @else if (nameTouched() && !name().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
 
@@ -79,10 +82,12 @@
             </span>
             <input type="text" class="form-control border-start-0 ps-1" id="dni"
               [placeholder]="'register.dniPlaceholder' | translate" [ngModel]="dni()" (ngModelChange)="dni.set($event)"
-              name="dni" required [class.is-invalid]="fieldErrors()['dni']" />
+              (blur)="dniTouched.set(true)" name="dni" required [class.is-invalid]="fieldErrors()['dni'] || (dniTouched() && !dni().trim())" />
           </div>
           @if (fieldErrors()['dni']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['dni'] }}</div>
+          } @else if (dniTouched() && !dni().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
 
@@ -94,14 +99,17 @@
             </span>
             <input type="email" class="form-control border-start-0 ps-1" id="email"
               [placeholder]="'register.emailPlaceholder' | translate" [ngModel]="email()"
-              (ngModelChange)="email.set($event)" name="email" required [class.is-invalid]="fieldErrors()['email']" />
+              (ngModelChange)="email.set($event)" (blur)="emailTouched.set(true)" name="email" required
+              [class.is-invalid]="fieldErrors()['email'] || (emailTouched() && !email().trim())" />
           </div>
           @if (fieldErrors()['email']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['email'] }}</div>
+          } @else if (emailTouched() && !email().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12">
           <label for="phone" class="form-label">{{ 'register.phone' | translate }}</label>
           <div class="input-group">
             <span class="input-group-text bg-transparent border-end-0 ps-3">
@@ -109,14 +117,17 @@
             </span>
             <input type="tel" class="form-control border-start-0 ps-1" id="phone"
               [placeholder]="'register.phonePlaceholder' | translate" [ngModel]="phone()"
-              (ngModelChange)="phone.set($event)" name="phone" required [class.is-invalid]="fieldErrors()['phone']" />
+              (ngModelChange)="phone.set($event)" (blur)="phoneTouched.set(true)" name="phone" required
+              [class.is-invalid]="fieldErrors()['phone'] || (phoneTouched() && !phone().trim())" />
           </div>
           @if (fieldErrors()['phone']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['phone'] }}</div>
+          } @else if (phoneTouched() && !phone().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
-
-        <div class="col-md-6">
+        <!-- Move password below phone and make stacked for better layout -->
+        <div class="col-12">
           <label for="password" class="form-label">{{ 'register.password' | translate }}</label>
           <div class="input-group">
             <span class="input-group-text bg-transparent border-end-0 ps-3">
@@ -124,7 +135,7 @@
             </span>
             <input [type]="showPassword() ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-1"
               id="password" placeholder="********" [ngModel]="password()" (ngModelChange)="password.set($event)"
-              name="password" required [class.is-invalid]="fieldErrors()['password']" />
+              (blur)="passwordTouched.set(true)" name="password" required [class.is-invalid]="fieldErrors()['password'] || (passwordTouched() && !password())" />
             <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted"
               [class.border-danger]="fieldErrors()['password']" type="button" (click)="toggleShowPassword()"
               tabindex="-1">
@@ -133,7 +144,54 @@
           </div>
           @if (fieldErrors()['password']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['password'] }}</div>
+          } @else if (passwordTouched() && !password()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
+
+          <!-- Password rules feedback: only show after the password field was touched and it's not yet valid -->
+          @if (passwordTouched() && !pwdValid()) {
+          <div class="mt-2 ps-2 small">
+            <div [class.text-success]="pwdHasUppercase()" [class.text-danger]="passwordTouched() && !pwdHasUppercase()" [class.text-muted]="!passwordTouched() && !pwdHasUppercase()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasUppercase()" [class.bi-dash-circle]="!pwdHasUppercase()"></i>
+              Contiene al menos una letra mayúscula
+            </div>
+            <div [class.text-success]="pwdHasNumber()" [class.text-danger]="passwordTouched() && !pwdHasNumber()" [class.text-muted]="!passwordTouched() && !pwdHasNumber()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasNumber()" [class.bi-dash-circle]="!pwdHasNumber()"></i>
+              Contiene al menos un número
+            </div>
+            <div [class.text-success]="pwdHasSpecial()" [class.text-danger]="passwordTouched() && !pwdHasSpecial()" [class.text-muted]="!passwordTouched() && !pwdHasSpecial()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasSpecial()" [class.bi-dash-circle]="!pwdHasSpecial()"></i>
+              Contiene al menos un carácter especial
+            </div>
+            <div [class.text-success]="pwdHasMinLength()" [class.text-danger]="passwordTouched() && !pwdHasMinLength()" [class.text-muted]="!passwordTouched() && !pwdHasMinLength()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasMinLength()" [class.bi-dash-circle]="!pwdHasMinLength()"></i>
+              Mínimo 8 caracteres
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="col-12">
+          <label for="confirmPassword" class="form-label">Repetir contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-lock text-muted"></i>
+            </span>
+            <input [type]="showConfirmPassword() ? 'text' : 'password'" class="form-control border-start-0 ps-1"
+              id="confirmPassword" placeholder="********" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"
+              (blur)="confirmPasswordTouched.set(true)" name="confirmPassword" required
+              [class.is-invalid]="(confirmPasswordTouched() && !passwordsMatch()) || fieldErrors()['confirmPassword']" />
+            <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button"
+              (click)="toggleShowConfirmPassword()" tabindex="-1">
+              <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()"></i>
+            </button>
+          </div>
+          @if (confirmPasswordTouched() && !passwordsMatch()) {
+          <div class="text-danger extra-small mt-1 ps-2">Las contraseñas no coinciden</div>
+          } @else if (fieldErrors()['confirmPassword']) {
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['confirmPassword'] }}</div>
+          }
+
         </div>
 
         <div class="col-12 mt-3">

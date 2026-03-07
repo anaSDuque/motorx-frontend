@@ -8,3 +8,27 @@
 textarea {
     resize: none;
 }
+
+/* Constrain modal width and height so header stays visible and body scrolls */
+.modal-dialog {
+    max-width: 760px;
+    width: 100%;
+}
+
+.modal-content {
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.modal-body {
+    overflow-y: auto;
+    /* reserve space for header/footer (approx 120px) */
+    max-height: calc(80vh - 120px);
+}
+
+/* On very small screens use almost full width but keep spacing */
+@media (max-width: 576px) {
+    .modal-dialog {
+        max-width: 95%;
+    }
+}
