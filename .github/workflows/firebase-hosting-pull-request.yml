@@ -16,19 +16,47 @@ jobs:
 
       - run: npm ci && npm run build
 
-      # 👇 Renombrar index si existe (soporta index.csr.html o index.ssr.html)
+      # 👇 Asegurar que exista index.html en dist/motorx-front/browser
       - run: |
-          if [ -f dist/motorx-front/browser/index.csr.html ]; then
-            mv dist/motorx-front/browser/index.csr.html dist/motorx-front/browser/index.html
-          elif [ -f dist/motorx-front/browser/index.ssr.html ]; then
-            mv dist/motorx-front/browser/index.ssr.html dist/motorx-front/browser/index.html
-          elif [ -f dist/motorx-front/browser/index.html ]; then
-            echo "index.html ya existe"
-          else
-            echo "No se encontró ningún index en dist/motorx-front/browser" >&2
-            ls -la dist/motorx-front/browser || true
-            exit 1
-          fi
+          set -e
+          # posibles ubicaciones
+          ROOT_DIST=dist/motorx-front
+          BROWSER_DIST=$ROOT_DIST/browser
+
+          ensure_browser_dir() {
+            if [ ! -d "$BROWSER_DIST" ]; then
+              echo "Creando $BROWSER_DIST"
+              mkdir -p "$BROWSER_DIST"
+            fi
+          }
+
+          move_if_exists() {
+            src="$1"
+            dst="$2"
+            if [ -f "$src" ]; then
+              echo "Moviendo $src -> $dst"
+              mv "$src" "$dst"
+              return 0
+            fi
+            return 1
+          }
+
+          ensure_browser_dir
+
+          # Prioridad: browser/index.* then root/index.*
+          if move_if_exists "$BROWSER_DIST/index.csr.html" "$BROWSER_DIST/index.html"; then exit 0; fi
+          if move_if_exists "$BROWSER_DIST/index.ssr.html" "$BROWSER_DIST/index.html"; then exit 0; fi
+          if [ -f "$BROWSER_DIST/index.html" ]; then echo "index.html ya existe en $BROWSER_DIST"; exit 0; fi
+
+          # intentar en la raíz del dist
+          if move_if_exists "$ROOT_DIST/index.csr.html" "$BROWSER_DIST/index.html"; then exit 0; fi
+          if move_if_exists "$ROOT_DIST/index.ssr.html" "$BROWSER_DIST/index.html"; then exit 0; fi
+          if move_if_exists "$ROOT_DIST/index.html" "$BROWSER_DIST/index.html"; then exit 0; fi
+
+          echo "No se encontró ningún index en $ROOT_DIST ni en $BROWSER_DIST" >&2
+          echo "Contenido $ROOT_DIST:"; ls -la "$ROOT_DIST" || true
+          echo "Contenido $BROWSER_DIST:"; ls -la "$BROWSER_DIST" || true
+          exit 1
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
