@@ -30,6 +30,15 @@ export class Register {
   protected readonly fieldErrors = signal<Record<string, string>>({});
   protected readonly acceptDataTreatment = signal(false);
   protected readonly captchaSolved = signal(false);
+  protected readonly showDataTreatmentModal = signal(false);
+
+  protected openDataTreatmentModal(): void {
+    this.showDataTreatmentModal.set(true);
+  }
+
+  protected closeDataTreatmentModal(): void {
+    this.showDataTreatmentModal.set(false);
+  }
 
   protected toggleShowPassword(): void {
     this.showPassword.update((val) => !val);
