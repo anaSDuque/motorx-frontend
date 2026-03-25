@@ -27,8 +27,10 @@
     </div>
   </div>
   
-  <div *ngIf="isSolved() === false && userAnswer() !== null && userAnswer()?.toString() !== ''" class="captcha-error">
-    <i class="bi bi-exclamation-circle"></i>
-    Respuesta incorrecta. Intenta de nuevo.
-  </div>
+  @if (isSolved() === false && userAnswer() !== null && userAnswer()?.toString() !== '') {
+    <div class="captcha-error">
+      <i class="bi bi-exclamation-circle"></i>
+      Respuesta incorrecta. Intenta de nuevo.
+    </div>
+  }
 </div>
