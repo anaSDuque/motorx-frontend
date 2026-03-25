@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import {
     AppointmentResponseDTO,
@@ -17,7 +17,7 @@ import { NotificationService } from '../../services/notification.service';
 @Component({
     selector: 'app-appointment-detail',
     standalone: true,
-    imports: [FormsModule],
+    imports: [ReactiveFormsModule],
     templateUrl: './appointment-detail.html',
     styleUrls: ['./appointment-detail.css'],
 })
@@ -37,6 +37,11 @@ export class AppointmentDetailModal {
 
     protected readonly isCancelling = signal(false);
     protected cancelReason = signal('');
+    protected readonly cancelReasonControl = new FormControl('', { nonNullable: true });
+
+    constructor() {
+        this.cancelReasonControl.valueChanges.subscribe((value) => this.cancelReason.set(value));
+    }
 
     getTypeLabel(type: AppointmentType | string): string {
         return this.typeLabels[type as AppointmentType] || type || 'Tipo desconocido';
@@ -111,6 +116,7 @@ export class AppointmentDetailModal {
 
     protected onClose(): void {
         this.cancelReason.set('');
+        this.cancelReasonControl.setValue('', { emitEvent: false });
         this.isCancelling.set(false);
         this.close.emit();
     }

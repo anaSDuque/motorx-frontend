@@ -1,0 +1,34 @@
+<div class="captcha-container">
+  <div class="captcha-header">
+    <i class="bi bi-shield-check"></i>
+    <span>{{ ('captcha.title' | translate) || 'Verificación de Seguridad' }}</span>
+    <button type="button" class="btn-refresh" (click)="generateChallenge()" title="Generar nuevo">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+  </div>
+  
+  <div class="captcha-body">
+    <div class="challenge-display">
+      <span class="number">{{ num1() }}</span>
+      <span class="operator">{{ operator() }}</span>
+      <span class="number">{{ num2() }}</span>
+      <span class="equals">=</span>
+      <span class="question">?</span>
+    </div>
+    
+    <div class="input-wrapper">
+      <input type="number" class="captcha-input" 
+        [formControl]="userAnswerControl"
+        [class.valid]="isSolved() === true"
+        [class.invalid]="isSolved() === false"
+        placeholder="?" 
+        min="0"
+        aria-label="Respuesta del captcha" />
+    </div>
+  </div>
+  
+  <div *ngIf="isSolved() === false && userAnswer() !== null && userAnswer()?.toString() !== ''" class="captcha-error">
+    <i class="bi bi-exclamation-circle"></i>
+    Respuesta incorrecta. Intenta de nuevo.
+  </div>
+</div>

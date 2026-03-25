@@ -35,43 +35,39 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">Marca</label>
-          <input type="text" class="form-control" [ngModel]="brand()" (ngModelChange)="brand.set($event)" name="brand"
+          <input type="text" class="form-control" [formControl]="brandControl"
             required placeholder="Yamaha" [class.is-invalid]="fieldErrors()['brand']" />
           @if (fieldErrors()['brand']) { <div class="invalid-feedback">{{ fieldErrors()['brand'] }}</div> }
         </div>
         <div class="col-md-6">
           <label class="form-label">Modelo</label>
-          <input type="text" class="form-control" [ngModel]="model()" (ngModelChange)="model.set($event)" name="model"
+          <input type="text" class="form-control" [formControl]="modelControl"
             required placeholder="FZ 250" [class.is-invalid]="fieldErrors()['model']" />
           @if (fieldErrors()['model']) { <div class="invalid-feedback">{{ fieldErrors()['model'] }}</div> }
         </div>
         @if (!editingId()) {
         <div class="col-md-4">
           <label class="form-label">Año de fabricación</label>
-          <input type="number" class="form-control" [ngModel]="yearOfManufacture()"
-            (ngModelChange)="yearOfManufacture.set($event)" name="year" required min="1950" max="2026"
+          <input type="number" class="form-control" [formControl]="yearControl" required min="1950" max="2026"
             [class.is-invalid]="fieldErrors()['yearOfManufacture']" />
           @if (fieldErrors()['yearOfManufacture']) { <div class="invalid-feedback">{{ fieldErrors()['yearOfManufacture']
             }}</div> }
         </div>
         <div class="col-md-4">
           <label class="form-label">Placa (AAA00A)</label>
-          <input type="text" class="form-control text-uppercase" [ngModel]="licensePlate()"
-            (ngModelChange)="licensePlate.set($event)" name="plate" required pattern="^[A-Za-z]{3}[0-9]{2}[A-Za-z]$"
+          <input type="text" class="form-control text-uppercase" [formControl]="plateControl" required pattern="^[A-Za-z]{3}[0-9]{2}[A-Za-z]$"
             placeholder="ABC12D" maxlength="6"
-            [class.is-invalid]="fieldErrors()['licensePlate'] || (plateCtrl.invalid && (plateCtrl.dirty || plateCtrl.touched))"
-            #plateCtrl="ngModel" />
+            [class.is-invalid]="fieldErrors()['licensePlate'] || (plateControl.invalid && (plateControl.dirty || plateControl.touched))" />
           @if (fieldErrors()['licensePlate']) { <div class="invalid-feedback">{{ fieldErrors()['licensePlate'] }}</div>
           }
-          @if (plateCtrl.invalid && (plateCtrl.dirty || plateCtrl.touched) && plateCtrl.errors?.['pattern']) {
+          @if (plateControl.invalid && (plateControl.dirty || plateControl.touched) && plateControl.errors?.['pattern']) {
           <div class="invalid-feedback d-block">Formato inválido. Ej validas: ABC12D</div>
           }
         </div>
         }
         <div class="col-md-4">
           <label class="form-label">Cilindraje (cc)</label>
-          <input type="number" class="form-control" [ngModel]="cylinderCapacity()"
-            (ngModelChange)="cylinderCapacity.set($event)" name="cc" required min="50" max="9999"
+          <input type="number" class="form-control" [formControl]="ccControl" required min="50" max="9999"
             [class.is-invalid]="fieldErrors()['cylinderCapacity']" />
           @if (fieldErrors()['cylinderCapacity']) { <div class="invalid-feedback">{{ fieldErrors()['cylinderCapacity']
             }}</div> }
@@ -79,8 +75,7 @@
         @if (!editingId()) {
         <div class="col-md-12">
           <label class="form-label">Número de chasis</label>
-          <input type="text" class="form-control" [ngModel]="chassisNumber()"
-            (ngModelChange)="chassisNumber.set($event)" name="chassis" required
+          <input type="text" class="form-control" [formControl]="chassisControl" required
             placeholder="Tal como aparece en la tarjeta de propiedad"
             [class.is-invalid]="fieldErrors()['chassisNumber']" />
           @if (fieldErrors()['chassisNumber']) { <div class="invalid-feedback">{{ fieldErrors()['chassisNumber'] }}

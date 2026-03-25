@@ -1,5 +1,5 @@
 import { Component, signal, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
@@ -8,7 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.html',
   styleUrls: ['./forgot-password.css'],
 })
@@ -17,31 +17,36 @@ export class ForgotPassword {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
 
-  protected readonly email = signal('');
+  protected readonly form = new FormGroup({
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+  });
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly message = signal('');
-  protected readonly emailTouched = signal(false);
+
+  protected get emailControl(): FormControl<string> {
+    return this.form.controls.email;
+  }
 
   protected onSubmit(): void {
-    this.emailTouched.set(true);
+    this.form.markAllAsTouched();
 
-    if (!this.email().trim()) {
-      this.error.set('Ingresa tu correo electrónico');
+    const normalizedEmail = this.emailControl.value.trim().toLowerCase();
+    this.emailControl.setValue(normalizedEmail, { emitEvent: false });
+
+    if (this.form.invalid) {
+      this.error.set('Ingresa un correo electrónico válido');
       return;
     }
 
     this.loading.set(true);
     this.error.set('');
 
-    this.passwordResetService.requestReset({ email: this.email() }).subscribe({
+    this.passwordResetService.requestReset({ email: normalizedEmail }).subscribe({
       next: () => {
         this.loading.set(false);
-        // After requesting a reset, navigate to the reset-password screen
-        // so the user can enter the code and a new password.
-        this.loading.set(false);
         this.message.set('Se envió el correo de restablecimiento. Revisa tu bandeja.');
-        this.router.navigate(['/reset-password'], { queryParams: { email: this.email() } });
+        this.router.navigate(['/reset-password'], { queryParams: { email: normalizedEmail } });
       },
       error: (err) => {
         this.loading.set(false);

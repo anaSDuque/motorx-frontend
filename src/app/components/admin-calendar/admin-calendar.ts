@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { AppointmentResponseDTO } from '../../models';
 import { AppointmentDetailModal } from '../appointment-detail/appointment-detail';
@@ -7,7 +7,7 @@ import { AppointmentDetailModal } from '../appointment-detail/appointment-detail
 @Component({
   selector: 'app-admin-calendar',
   standalone: true,
-  imports: [FormsModule, AppointmentDetailModal],
+  imports: [ReactiveFormsModule, AppointmentDetailModal],
   templateUrl: './admin-calendar.html',
   styleUrls: ['./admin-calendar.css'],
 })
@@ -16,6 +16,8 @@ export class AdminCalendar implements OnInit {
 
   protected readonly startDate = signal('');
   protected readonly endDate = signal('');
+  protected readonly startDateControl = new FormControl('', { nonNullable: true });
+  protected readonly endDateControl = new FormControl('', { nonNullable: true });
   protected readonly appointments = signal<AppointmentResponseDTO[]>([]);
   protected readonly loading = signal(false);
   protected readonly groupedByDate = signal<Record<string, AppointmentResponseDTO[]>>({});
@@ -30,6 +32,11 @@ export class AdminCalendar implements OnInit {
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     this.startDate.set(start.toISOString().split('T')[0]);
     this.endDate.set(end.toISOString().split('T')[0]);
+    this.startDateControl.setValue(this.startDate(), { emitEvent: false });
+    this.endDateControl.setValue(this.endDate(), { emitEvent: false });
+
+    this.startDateControl.valueChanges.subscribe((value) => this.startDate.set(value));
+    this.endDateControl.valueChanges.subscribe((value) => this.endDate.set(value));
     this.loadCalendar();
   }
 

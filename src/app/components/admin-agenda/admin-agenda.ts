@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { AppointmentResponseDTO } from '../../models';
@@ -8,7 +8,7 @@ import { AppointmentDetailModal } from '../appointment-detail/appointment-detail
 @Component({
   selector: 'app-admin-agenda',
   standalone: true,
-  imports: [FormsModule, RouterLink, AppointmentDetailModal],
+  imports: [ReactiveFormsModule, RouterLink, AppointmentDetailModal],
   templateUrl: './admin-agenda.html',
   styleUrls: ['./admin-agenda.css'],
 })
@@ -16,6 +16,7 @@ export class AdminAgenda implements OnInit {
   private readonly appointmentService = inject(AdminAppointmentService);
 
   protected readonly selectedDate = signal(new Date().toISOString().split('T')[0]);
+  protected readonly selectedDateControl = new FormControl(new Date().toISOString().split('T')[0], { nonNullable: true });
   protected readonly appointments = signal<AppointmentResponseDTO[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
@@ -29,7 +30,18 @@ export class AdminAgenda implements OnInit {
   protected readonly cancellingId = signal<number | null>(null);
   protected readonly cancelReason = signal('');
   protected readonly cancelNotify = signal(true);
+  protected readonly cancelReasonControl = new FormControl('', { nonNullable: true });
+  protected readonly cancelNotifyControl = new FormControl(true, { nonNullable: true });
   protected readonly cancelLoading = signal(false);
+
+  constructor() {
+    this.selectedDateControl.valueChanges.subscribe((value) => {
+      this.selectedDate.set(value);
+      this.loadAgenda();
+    });
+    this.cancelReasonControl.valueChanges.subscribe((value) => this.cancelReason.set(value));
+    this.cancelNotifyControl.valueChanges.subscribe((value) => this.cancelNotify.set(value));
+  }
 
   ngOnInit(): void {
     this.loadAgenda();
@@ -64,6 +76,8 @@ export class AdminAgenda implements OnInit {
     this.cancellingId.set(id);
     this.cancelReason.set('');
     this.cancelNotify.set(true);
+    this.cancelReasonControl.setValue('', { emitEvent: false });
+    this.cancelNotifyControl.setValue(true, { emitEvent: false });
   }
 
   protected confirmCancel(): void {

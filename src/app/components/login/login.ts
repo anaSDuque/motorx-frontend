@@ -1,26 +1,32 @@
 import { Component, signal, computed, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Role } from '../../models';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
 import { MathCaptcha } from '../math-captcha/math-captcha';
+import { AboutUs } from '../about-us/about-us';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, MathCaptcha],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, MathCaptcha, AboutUs],
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
 })
 export class Login {
+  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; 
+
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
 
-  protected readonly email = signal('');
-  protected readonly password = signal('');
+  protected readonly loginForm = new FormGroup({
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
+
   protected readonly code2FA = signal('');
   // 2FA code as six separate boxes
   protected readonly codeDigits = signal<string[]>(['', '', '', '', '', '']);
@@ -30,27 +36,54 @@ export class Login {
   protected readonly needs2FA = signal(false);
   protected readonly captchaSolved = signal(false);
   protected readonly showPassword = signal(false);
+  protected readonly showAboutUsModal = signal(false);
+
+  protected openAboutUsModal(): void {
+    this.showAboutUsModal.set(true);
+  }
+
+  protected closeAboutUsModal(): void {
+    this.showAboutUsModal.set(false);
+  }
 
   protected toggleShowPassword(): void {
     this.showPassword.update((val) => !val);
   }
 
-  protected readonly emailTouched = signal(false);
-  protected readonly passwordTouched = signal(false);
+  protected readonly emailValid = computed(() => Login.EMAIL_REGEX.test(this.emailControl.value.trim().toLowerCase()));
+  protected readonly passwordValid = computed(() => this.passwordControl.value.trim().length > 0);
+
+  protected get emailControl(): FormControl<string> {
+    return this.loginForm.controls.email;
+  }
+
+  protected get passwordControl(): FormControl<string> {
+    return this.loginForm.controls.password;
+  }
 
   protected onLogin(): void {
-    this.emailTouched.set(true);
-    this.passwordTouched.set(true);
+    this.loginForm.markAllAsTouched();
 
-    if (!this.email().trim() || !this.password()) {
+    const normalizedEmail = this.emailControl.value.trim().toLowerCase();
+    this.emailControl.setValue(normalizedEmail, { emitEvent: false });
+
+    if (this.loginForm.invalid) {
       this.error.set('Completa todos los campos del formulario');
+      return;
+    }
+    if (!this.emailValid()) {
+      this.error.set('Ingresa un correo electrónico válido');
+      return;
+    }
+    if (!this.captchaSolved()) {
+      this.error.set('Completa el captcha para continuar');
       return;
     }
 
     this.loading.set(true);
     this.error.set('');
 
-    this.authService.login({ email: this.email(), password: this.password() }).subscribe({
+    this.authService.login({ email: normalizedEmail, password: this.passwordControl.value }).subscribe({
       next: (res) => {
         this.loading.set(false);
         if ('token' in res && res.token) {
@@ -68,11 +101,16 @@ export class Login {
   }
 
   protected onVerify2FA(): void {
+    if (!/^\d{6}$/.test(this.fullCode())) {
+      this.error.set('Ingresa el código de verificación de 6 dígitos');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set('');
 
     // Use the joined digits as the verification code
-    this.authService.verify2FA({ email: this.email(), code: this.fullCode() }).subscribe({
+    this.authService.verify2FA({ email: this.emailControl.value.trim().toLowerCase(), code: this.fullCode() }).subscribe({
       next: (res) => {
         this.loading.set(false);
         this.navigateByRole(res.role);

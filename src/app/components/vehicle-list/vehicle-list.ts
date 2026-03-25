@@ -1,12 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { UserVehicleService } from '../../services/user-vehicle.service';
 import { VehicleResponseDTO, CreateVehicleRequestDTO, UpdateVehicleRequestDTO } from '../../models';
 
 @Component({
   selector: 'app-vehicle-list',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './vehicle-list.html',
   styleUrls: ['./vehicle-list.css'],
 })
@@ -32,6 +32,28 @@ export class VehicleList implements OnInit {
   protected readonly licensePlate = signal('');
   protected readonly cylinderCapacity = signal<number>(150);
   protected readonly chassisNumber = signal('');
+
+  protected readonly brandControl = new FormControl('', { nonNullable: true });
+  protected readonly modelControl = new FormControl('', { nonNullable: true });
+  protected readonly yearControl = new FormControl(2024, { nonNullable: true });
+  protected readonly plateControl = new FormControl('', { nonNullable: true });
+  protected readonly ccControl = new FormControl(150, { nonNullable: true });
+  protected readonly chassisControl = new FormControl('', { nonNullable: true });
+
+  constructor() {
+    this.brandControl.valueChanges.subscribe((value) => this.brand.set(value));
+    this.modelControl.valueChanges.subscribe((value) => this.model.set(value));
+    this.yearControl.valueChanges.subscribe((value) => this.yearOfManufacture.set(Number(value)));
+    this.ccControl.valueChanges.subscribe((value) => this.cylinderCapacity.set(Number(value)));
+    this.chassisControl.valueChanges.subscribe((value) => this.chassisNumber.set(value));
+    this.plateControl.valueChanges.subscribe((value) => {
+      const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+      if (normalized !== value) {
+        this.plateControl.setValue(normalized, { emitEvent: false });
+      }
+      this.licensePlate.set(normalized);
+    });
+  }
 
   ngOnInit(): void {
     this.loadVehicles();
@@ -61,6 +83,12 @@ export class VehicleList implements OnInit {
     this.yearOfManufacture.set(v.yearOfManufacture);
     this.licensePlate.set(v.licensePlate);
     this.chassisNumber.set(v.chassisNumber);
+    this.brandControl.setValue(v.brand, { emitEvent: false });
+    this.modelControl.setValue(v.model, { emitEvent: false });
+    this.ccControl.setValue(v.cylinderCapacity, { emitEvent: false });
+    this.yearControl.setValue(v.yearOfManufacture, { emitEvent: false });
+    this.plateControl.setValue(v.licensePlate, { emitEvent: false });
+    this.chassisControl.setValue(v.chassisNumber, { emitEvent: false });
     this.editingId.set(v.id);
     this.formError.set('');
     this.fieldErrors.set({});
@@ -137,6 +165,12 @@ export class VehicleList implements OnInit {
     this.licensePlate.set('');
     this.cylinderCapacity.set(150);
     this.chassisNumber.set('');
+    this.brandControl.setValue('', { emitEvent: false });
+    this.modelControl.setValue('', { emitEvent: false });
+    this.yearControl.setValue(2024, { emitEvent: false });
+    this.plateControl.setValue('', { emitEvent: false });
+    this.ccControl.setValue(150, { emitEvent: false });
+    this.chassisControl.setValue('', { emitEvent: false });
     this.formError.set('');
     this.fieldErrors.set({});
   }

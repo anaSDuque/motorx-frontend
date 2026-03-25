@@ -1,11 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2"></i>Calendario de citas</h3>
   <div class="d-flex gap-2 align-items-center">
-    <input type="date" class="form-control" style="width: auto" [ngModel]="startDate()"
-      (ngModelChange)="startDate.set($event)" />
+    <input type="date" class="form-control" style="width: auto" [formControl]="startDateControl" />
     <span class="text-muted">a</span>
-    <input type="date" class="form-control" style="width: auto" [ngModel]="endDate()"
-      (ngModelChange)="endDate.set($event)" />
+    <input type="date" class="form-control" style="width: auto" [formControl]="endDateControl" />
     <button class="btn btn-primary" (click)="loadCalendar()">
       <i class="bi bi-search me-1"></i>Buscar
     </button>
