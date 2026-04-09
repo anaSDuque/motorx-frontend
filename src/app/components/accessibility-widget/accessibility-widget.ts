@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ThemeService } from '../../services/theme.service';
 import { AccessibilityService } from '../../services/accessibility.service';
 import { LanguageService, Language } from '../../services/language.service';
@@ -7,7 +7,7 @@ import { LanguageService, Language } from '../../services/language.service';
 @Component({
   selector: 'app-accessibility-widget',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   template: `
     <!-- Floating toggle button -->
     <button class="a11y-toggle" (click)="open.set(!open())" title="Accesibilidad"
@@ -30,8 +30,7 @@ import { LanguageService, Language } from '../../services/language.service';
         <div class="slider-container">
           <span class="slider-label-sm">A</span>
           <input type="range" class="form-range a11y-slider" min="80" max="160" step="5"
-            [ngModel]="accessibilityService.fontScale()"
-            (ngModelChange)="accessibilityService.setFontScale($event)" />
+            [formControl]="fontScaleControl" />
           <span class="slider-label-lg">A</span>
         </div>
         <div class="text-center mt-1">
@@ -148,6 +147,13 @@ export class AccessibilityWidget {
   protected readonly accessibilityService = inject(AccessibilityService);
   protected readonly languageService = inject(LanguageService);
   protected readonly open = signal(false);
+  protected readonly fontScaleControl = new FormControl<number>(this.accessibilityService.fontScale(), { nonNullable: true });
+
+  constructor() {
+    this.fontScaleControl.valueChanges.subscribe((value) => {
+      this.accessibilityService.setFontScale(Number(value));
+    });
+  }
 
   protected setTheme(theme: 'light' | 'dark'): void {
     if (this.themeService.isDark() && theme === 'light') this.themeService.toggleTheme();

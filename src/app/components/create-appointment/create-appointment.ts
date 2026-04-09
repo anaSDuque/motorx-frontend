@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { UserAppointmentService } from '../../services/user-appointment.service';
 import { UserVehicleService } from '../../services/user-vehicle.service';
@@ -13,7 +13,7 @@ import {
 @Component({
   selector: 'app-create-appointment',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './create-appointment.html',
   styleUrls: ['./create-appointment.css'],
 })
@@ -53,6 +53,23 @@ export class CreateAppointment implements OnInit {
   protected readonly currentMileage = signal<number>(0);
   protected readonly currentMileageTouched = signal(false);
   protected readonly clientNotes = signal('');
+
+  protected readonly selectedVehicleControl = new FormControl<number | null>(null);
+  protected readonly selectedTypeControl = new FormControl<AppointmentType | ''>('', { nonNullable: true });
+  protected readonly appointmentDateControl = new FormControl('', { nonNullable: true });
+  protected readonly currentMileageControl = new FormControl(0, { nonNullable: true });
+  protected readonly clientNotesControl = new FormControl('', { nonNullable: true });
+
+  constructor() {
+    this.selectedVehicleControl.valueChanges.subscribe((value) => this.selectedVehicleId.set(value));
+    this.selectedTypeControl.valueChanges.subscribe((value) => {
+      this.selectedType.set(value);
+      this.onTypeChange();
+    });
+    this.appointmentDateControl.valueChanges.subscribe((value) => this.onDateChange(value));
+    this.currentMileageControl.valueChanges.subscribe((value) => this.currentMileage.set(Number(value)));
+    this.clientNotesControl.valueChanges.subscribe((value) => this.clientNotes.set(value));
+  }
 
   protected readonly appointmentTypes = [
     { value: AppointmentType.MANUAL_WARRANTY_REVIEW, label: 'Revisión de garantía de manual' },
@@ -107,7 +124,16 @@ export class CreateAppointment implements OnInit {
   }
 
   protected checkPlateRestriction(): void {
-    if (!this.selectedVehicleId() || !this.appointmentDate()) return;
+    if (!this.selectedVehicleId() || !this.appointmentDate() || !this.selectedType()) {
+      this.error.set('Selecciona vehículo, tipo y fecha para verificar pico y placa');
+      return;
+    }
+    if (this.isSunday(this.appointmentDate())) {
+      this.error.set('Los domingos no están disponibles para agendar citas');
+      return;
+    }
+
+    this.error.set('');
     this.checkingPlate.set(true);
     this.plateRestriction.set(null);
     this.plateOk.set(false);
@@ -134,8 +160,13 @@ export class CreateAppointment implements OnInit {
       this.error.set('Selecciona vehículo, tipo y fecha antes de continuar');
       return;
     }
+    if (this.isSunday(this.appointmentDate())) {
+      this.error.set('Los domingos no están disponibles para agendar citas');
+      return;
+    }
 
     if (this.plateOk()) {
+      this.error.set('');
       this.loadSlots();
       this.step.set(2);
     }
@@ -187,7 +218,10 @@ export class CreateAppointment implements OnInit {
 
   protected goToStep3(): void {
     if (this.selectedSlot()) {
+      this.error.set('');
       this.step.set(3);
+    } else {
+      this.error.set('Selecciona un horario para continuar');
     }
   }
 
@@ -199,11 +233,22 @@ export class CreateAppointment implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
+    if (!this.selectedVehicleId() || !this.selectedType() || !this.appointmentDate() || !this.selectedSlot()) {
+      this.loading.set(false);
+      this.error.set('Completa todos los datos de la cita antes de confirmar');
+      return;
+    }
+    if (this.isSunday(this.appointmentDate())) {
+      this.loading.set(false);
+      this.error.set('Los domingos no están disponibles para agendar citas');
+      return;
+    }
+
     // Require mileage
     this.currentMileageTouched.set(true);
-    if (!this.currentMileage() || this.currentMileage() <= 0) {
+    if (!Number.isInteger(this.currentMileage()) || this.currentMileage() <= 0) {
       this.loading.set(false);
-      this.error.set('El kilometraje es obligatorio');
+      this.error.set('El kilometraje debe ser un número entero mayor a 0');
       return;
     }
 

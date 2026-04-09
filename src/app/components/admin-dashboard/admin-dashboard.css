@@ -1,0 +1,36 @@
+.metric-card {
+  background: linear-gradient(140deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0.02));
+}
+
+.metric-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mx-muted, #6c757d);
+}
+
+.metric-value {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.quick-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--mx-shadow-lg);
+}
+
+@media (max-width: 576px) {
+  .metric-label {
+    font-size: 0.74rem;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+  }
+}

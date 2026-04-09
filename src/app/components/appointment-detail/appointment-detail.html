@@ -95,8 +95,7 @@
                 <div class="mb-3 px-2">
                     <label class="form-label text-danger fw-semibold small">Motivo de Cancelación (Requerido para
                         admin)</label>
-                    <textarea class="form-control" rows="2" [ngModel]="cancelReason()"
-                        (ngModelChange)="cancelReason.set($event)" placeholder="Escriba el motivo..."></textarea>
+                    <textarea class="form-control" rows="2" [formControl]="cancelReasonControl" placeholder="Escriba el motivo..."></textarea>
                 </div>
                 }
                 <div class="px-2">

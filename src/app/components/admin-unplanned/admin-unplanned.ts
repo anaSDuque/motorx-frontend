@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { AdminVehicleService } from '../../services/admin-vehicle.service';
@@ -10,7 +10,7 @@ import { AppointmentType, APPOINTMENT_TYPE_LABELS } from '../../models/enums';
 @Component({
   selector: 'app-admin-unplanned',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './admin-unplanned.html',
   styleUrls: ['./admin-unplanned.css'],
 })
@@ -55,6 +55,26 @@ export class AdminUnplanned implements OnInit {
   protected readonly dateTouched = signal(false);
   protected readonly timeTouched = signal(false);
   protected readonly mileageTouched = signal(false);
+
+  protected readonly plateSearchControl = new FormControl('', { nonNullable: true });
+  protected readonly vehicleIdControl = new FormControl<number | null>(null);
+  protected readonly appointmentTypeControl = new FormControl<AppointmentType>(AppointmentType.UNPLANNED, { nonNullable: true });
+  protected readonly appointmentDateControl = new FormControl('', { nonNullable: true });
+  protected readonly startTimeControl = new FormControl('', { nonNullable: true });
+  protected readonly currentMileageControl = new FormControl<number | null>(null);
+  protected readonly technicianIdControl = new FormControl<number | null>(null);
+  protected readonly adminNotesControl = new FormControl('', { nonNullable: true });
+
+  constructor() {
+    this.plateSearchControl.valueChanges.subscribe((value) => this.plateSearch.set(value));
+    this.vehicleIdControl.valueChanges.subscribe((value) => this.vehicleId.set(value));
+    this.appointmentTypeControl.valueChanges.subscribe((value) => this.appointmentType.set(value));
+    this.appointmentDateControl.valueChanges.subscribe((value) => this.appointmentDate.set(value));
+    this.startTimeControl.valueChanges.subscribe((value) => this.startTime.set(value));
+    this.currentMileageControl.valueChanges.subscribe((value) => this.currentMileage.set(value));
+    this.technicianIdControl.valueChanges.subscribe((value) => this.technicianId.set(value));
+    this.adminNotesControl.valueChanges.subscribe((value) => this.adminNotes.set(value));
+  }
 
   // Today's date for min attribute
   protected get today(): string {

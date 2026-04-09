@@ -61,6 +61,38 @@
 
       <!-- Admin Navigation -->
       @if (isAdmin) {
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="bi bi-speedometer2 me-1"></i>{{ 'nav.adminDashboard' | translate }}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/agenda" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="bi bi-list-task me-1"></i>{{ 'nav.agenda' | translate }}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/calendar" routerLinkActive="active">
+            <i class="bi bi-calendar3 me-1"></i>{{ 'nav.calendar' | translate }}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/employees" routerLinkActive="active">
+            <i class="bi bi-people me-1"></i>{{ 'nav.employees' | translate }}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
+            <i class="bi bi-person-lines-fill me-1"></i>{{ 'nav.users' | translate }}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/vehicles" routerLinkActive="active">
+            <i class="bi bi-bicycle me-1"></i>{{ 'nav.vehicles' | translate }}
+          </a>
+        </li>
+      </ul>
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
             <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">

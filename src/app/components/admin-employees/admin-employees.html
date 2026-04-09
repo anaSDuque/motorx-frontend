@@ -8,7 +8,7 @@
 @if (success()) {
   <div class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i>{{ success() }}
-    <button type="button" class="btn-close" (click)="success.set('')"></button>
+    <button type="button" class="btn-close" (click)="success.set('')"></button> 
   </div>
 }
 @if (error()) {
@@ -33,7 +33,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Cargo</label>
-            <select class="form-select" [ngModel]="position()" (ngModelChange)="position.set($event)" name="position">
+            <select class="form-select" [formControl]="positionControl">
               @for (p of positions; track p) {
                 <option [ngValue]="p">{{ p }}</option>
               }
@@ -42,7 +42,7 @@
           @if (editingId()) {
             <div class="col-md-6">
               <label class="form-label">Estado</label>
-              <select class="form-select" [ngModel]="state()" (ngModelChange)="state.set($event)" name="state">
+              <select class="form-select" [formControl]="stateControl">
                 @for (s of states; track s) {
                   <option [ngValue]="s">{{ getStateLabel(s) }}</option>
                 }
@@ -52,23 +52,23 @@
           @if (!editingId()) {
             <div class="col-md-6">
               <label class="form-label">Nombre completo</label>
-              <input type="text" class="form-control" [ngModel]="userName()" (ngModelChange)="userName.set($event)" name="name" required />
+              <input type="text" class="form-control" [formControl]="userNameControl" required minlength="3" />
             </div>
             <div class="col-md-6">
               <label class="form-label">DNI</label>
-              <input type="text" class="form-control" [ngModel]="userDni()" (ngModelChange)="userDni.set($event)" name="dni" required />
+              <input type="text" class="form-control" [formControl]="userDniControl" required inputmode="numeric" pattern="[0-9]*" minlength="6" maxlength="12" />
             </div>
             <div class="col-md-6">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" [ngModel]="userEmail()" (ngModelChange)="userEmail.set($event)" name="email" required />
+              <input type="email" class="form-control" [formControl]="userEmailControl" required />
             </div>
             <div class="col-md-6">
               <label class="form-label">Contraseña temporal</label>
-              <input type="password" class="form-control" [ngModel]="userPassword()" (ngModelChange)="userPassword.set($event)" name="password" required />
+              <input type="password" class="form-control" [formControl]="userPasswordControl" required minlength="8" />
             </div>
             <div class="col-md-6">
               <label class="form-label">Teléfono</label>
-              <input type="tel" class="form-control" [ngModel]="userPhone()" (ngModelChange)="userPhone.set($event)" name="phone" required />
+              <input type="tel" class="form-control" [formControl]="userPhoneControl" required inputmode="numeric" pattern="[0-9]*" minlength="7" maxlength="10" />
             </div>
           }
         </div>

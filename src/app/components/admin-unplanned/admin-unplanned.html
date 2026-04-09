@@ -25,12 +25,12 @@
           </label>
           <input type="text" id="plateSearch" class="form-control"
             placeholder="Escriba la placa para filtrar..."
-            [ngModel]="plateSearch()" (ngModelChange)="plateSearch.set($event)" name="plateSearch" />
+            [formControl]="plateSearchControl" />
         </div>
 
         <div class="mb-3">
           <label class="form-label" for="vehicleId">Vehículo</label>
-          <select id="vehicleId" class="form-select" [ngModel]="vehicleId()" (ngModelChange)="vehicleId.set($event)" name="vehicleId" required
+          <select id="vehicleId" class="form-select" [formControl]="vehicleIdControl" required
             (blur)="vehicleTouched.set(true)"
             [class.is-invalid]="vehicleTouched() && !vehicleId()">
             <option [ngValue]="null" disabled>Seleccione un vehículo</option>
@@ -51,7 +51,7 @@
 
         <div class="mb-3">
           <label class="form-label" for="appointmentType">Tipo de cita</label>
-          <select id="appointmentType" class="form-select" [ngModel]="appointmentType()" (ngModelChange)="appointmentType.set($event)" name="appointmentType" required>
+          <select id="appointmentType" class="form-select" [formControl]="appointmentTypeControl" required>
             @for (t of appointmentTypes; track t) {
               <option [ngValue]="t">{{ typeLabels[t] }}</option>
             }
@@ -62,7 +62,7 @@
           <div class="col-md-6">
             <label class="form-label" for="appointmentDate">Fecha</label>
             <input type="date" id="appointmentDate" class="form-control" [min]="today"
-              [ngModel]="appointmentDate()" (ngModelChange)="appointmentDate.set($event)" name="appointmentDate" required
+              [formControl]="appointmentDateControl" required
               (blur)="dateTouched.set(true)"
               [class.is-invalid]="dateTouched() && !appointmentDate()" />
             @if (dateTouched() && !appointmentDate()) {
@@ -72,7 +72,7 @@
           <div class="col-md-6">
             <label class="form-label" for="startTime">Hora de inicio</label>
             <input type="time" id="startTime" class="form-control"
-              [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" name="startTime" required
+              [formControl]="startTimeControl" required
               (blur)="timeTouched.set(true)"
               [class.is-invalid]="timeTouched() && !startTime()" />
             @if (timeTouched() && !startTime()) {
@@ -84,7 +84,7 @@
         <div class="mb-3">
           <label class="form-label" for="currentMileage">Kilometraje actual</label>
           <input type="number" id="currentMileage" class="form-control"
-            [ngModel]="currentMileage()" (ngModelChange)="currentMileage.set($event)" name="currentMileage" placeholder="Ej: 15000" required
+            [formControl]="currentMileageControl" placeholder="Ej: 15000" required
             (blur)="mileageTouched.set(true)"
             [class.is-invalid]="mileageTouched() && !currentMileage()" />
           @if (mileageTouched() && !currentMileage()) {
@@ -94,7 +94,7 @@
 
         <div class="mb-3">
           <label class="form-label" for="technicianId">Técnico (opcional)</label>
-          <select id="technicianId" class="form-select" [ngModel]="technicianId()" (ngModelChange)="technicianId.set($event)" name="technicianId">
+          <select id="technicianId" class="form-select" [formControl]="technicianIdControl">
             <option [ngValue]="null">Sin asignar</option>
             @for (e of employees(); track e.employeeId) {
               <option [ngValue]="e.employeeId">{{ e.userName }} - {{ e.position }}</option>
@@ -104,7 +104,7 @@
 
         <div class="mb-3">
           <label class="form-label" for="adminNotes">Notas del administrador</label>
-          <textarea id="adminNotes" class="form-control" [ngModel]="adminNotes()" (ngModelChange)="adminNotes.set($event)" name="adminNotes" rows="3" placeholder="Observaciones..."></textarea>
+          <textarea id="adminNotes" class="form-control" [formControl]="adminNotesControl" rows="3" placeholder="Observaciones..."></textarea>
         </div>
 
         <div class="d-grid">

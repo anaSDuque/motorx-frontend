@@ -124,15 +124,36 @@
 }
 
 /* About-us button: keep visible text on hover even with bg-white helper class */
-.login-container > a.btn-outline-primary.bg-white {
+.login-container > .about-us-trigger.btn-outline-primary.bg-white {
   color: var(--mx-primary);
   background-color: #ffffff;
   border-color: rgba(13, 110, 253, 0.25);
 }
-.login-container > a.btn-outline-primary.bg-white:hover,
-.login-container > a.btn-outline-primary.bg-white:focus {
+.login-container > .about-us-trigger.btn-outline-primary.bg-white:hover,
+.login-container > .about-us-trigger.btn-outline-primary.bg-white:focus {
   background-color: #ffffff !important;
   color: var(--mx-primary) !important;
   border-color: rgba(13, 110, 253, 0.4) !important;
   text-decoration: none;
+}
+
+.about-us-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  background: rgba(17, 24, 39, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.about-us-modal {
+  width: min(1100px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.3);
+  padding: 0 1.25rem 1.25rem;
 }

@@ -426,7 +426,7 @@ POST /api/auth/refresh?refreshToken=eyJhbGciOiJIUzI1NiIs...
 
 ---
 
-### 3.1 `GET /api/v1/user/appointments/available-slots`
+### 3.1 `GET /api/v1/user/appointments/available-slots` 
 
 **Descripción:** Devuelve los horarios disponibles para agendar una cita de un tipo específico en una fecha determinada. Un slot se muestra como disponible si al menos un técnico tiene ese horario libre. Se recomienda llamar **después** de verificar pico y placa.
 

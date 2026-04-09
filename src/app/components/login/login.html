@@ -1,12 +1,15 @@
 <div class="login-container position-relative">
   <!-- Absolute About Us Link -->
-  <a routerLink="/about-us"
-    class="btn btn-sm btn-outline-primary position-absolute top-0 end-0 m-4 z-3 rounded-pill px-3 shadow-sm bg-white">
+  <button
+    type="button"
+    class="btn btn-sm btn-outline-primary position-absolute top-0 end-0 m-4 z-3 rounded-pill px-3 shadow-sm bg-white about-us-trigger"
+    (click)="openAboutUsModal()"
+  >
     <i class="bi bi-info-circle me-2"></i>{{ 'nav.aboutUs' | translate }}
-  </a>
+  </button>
 
   <!-- Visual Branding Side -->
-  <div class="login-visual-section d-none d-lg-flex">
+  <div class="login-visual-section d-none d-lg-flex"> 
     <div class="visual-content animate-in">
       <i class="bi bi-gear-wide-connected display-1 mb-4"></i>
       <h1 class="visual-title tracking-tight">Motor<span class="text-white">X</span></h1>
@@ -51,7 +54,7 @@
       }
 
       @if (!needs2FA()) {
-        <form (ngSubmit)="onLogin()">
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
           <div class="mb-3">
             <label for="email" class="form-label">Correo electrónico</label>
             <div class="input-group">
@@ -61,16 +64,15 @@
               class="form-control"
               id="email"
               placeholder="correo@ejemplo.com"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event)"
-              (blur)="emailTouched.set(true)"
-              name="email"
+              formControlName="email"
               required
-              [class.is-invalid]="emailTouched() && !email().trim()"
+              [class.is-invalid]="emailControl.touched && emailControl.invalid"
             />
           </div>
-              @if (emailTouched() && !email().trim()) {
+              @if (emailControl.touched && emailControl.hasError('required')) {
                 <div class="invalid-feedback">El correo electrónico es obligatorio</div>
+              } @else if (emailControl.touched && emailControl.hasError('email')) {
+                <div class="invalid-feedback">Ingresa un correo electrónico válido</div>
               }
             </div>
           <div class="mb-3">
@@ -78,21 +80,21 @@
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-lock"></i></span>
               <input
-                type="password"
+                [type]="showPassword() ? 'text' : 'password'"
                 class="form-control"
                 id="password"
                 placeholder="Tu contraseña"
-                [ngModel]="password()"
-                (ngModelChange)="password.set($event)"
-                (blur)="passwordTouched.set(true)"
-                name="password"
+                formControlName="password"
                 required
-                [class.is-invalid]="passwordTouched() && !password()"
+                [class.is-invalid]="passwordControl.touched && passwordControl.invalid"
               />
-              @if (passwordTouched() && !password()) {
-                <div class="invalid-feedback">La contraseña es obligatoria</div>
-              }
-            </div>
+              <button class="btn btn-outline-secondary" type="button" (click)="toggleShowPassword()" tabindex="-1">
+                <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+              </button>
+            </div> 
+            @if (passwordControl.touched && passwordControl.hasError('required')) {
+              <div class="text-danger small mt-1">La contraseña es obligatoria</div>
+            }
           </div>
           <div class="text-end mb-2">
             <a routerLink="/forgot-password" class="btn btn-link text-motorx-primary p-0 fw-bold">¿Olvidaste tu contraseña?</a>
@@ -102,7 +104,7 @@
           <app-math-captcha (solved)="captchaSolved.set($event)"></app-math-captcha>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100 py-3 mt-2" [disabled]="loading() || !captchaSolved()">
+        <button type="submit" class="btn btn-primary w-100 py-3 mt-2" [disabled]="loading() || !captchaSolved() || !emailValid() || !passwordValid()">
           @if (loading()) {
           <span class="spinner-border spinner-border-sm"></span>
           } @else {
@@ -139,7 +141,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100 py-3" [disabled]="loading()">
+        <button type="submit" class="btn btn-primary w-100 py-3" [disabled]="loading() || fullCode().length !== 6">
           @if (loading()) {
           <span class="spinner-border spinner-border-sm"></span>
           } @else {
@@ -159,3 +161,11 @@
     </div>
   </div>
 </div>
+
+@if (showAboutUsModal()) {
+<div class="about-us-modal-backdrop" (click)="closeAboutUsModal()">
+  <div class="about-us-modal" role="dialog" aria-modal="true" aria-label="About Us" (click)="$event.stopPropagation()">
+    <app-about-us [floating]="true" (closeRequested)="closeAboutUsModal()"></app-about-us>
+  </div>
+</div>
+}

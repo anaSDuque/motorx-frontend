@@ -1,12 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AdminVehicleService } from '../../services/admin-vehicle.service';
 import { VehicleResponseDTO } from '../../models';
 
 @Component({
   selector: 'app-admin-vehicles',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './admin-vehicles.html',
   styleUrls: ['./admin-vehicles.css'],
 })
@@ -21,7 +21,12 @@ export class AdminVehicles implements OnInit {
   protected readonly showTransferModal = signal(false);
   protected readonly selectedVehicleId = signal<number | null>(null);
   protected readonly newOwnerId = signal<number | null>(null);
+  protected readonly newOwnerIdControl = new FormControl<number | null>(null);
   protected readonly transferring = signal(false);
+
+  constructor() {
+    this.newOwnerIdControl.valueChanges.subscribe((value) => this.newOwnerId.set(value ?? null));
+  }
 
   ngOnInit(): void {
     this.loadVehicles();
@@ -41,6 +46,7 @@ export class AdminVehicles implements OnInit {
   protected openTransfer(vehicleId: number): void {
     this.selectedVehicleId.set(vehicleId);
     this.newOwnerId.set(null);
+    this.newOwnerIdControl.setValue(null, { emitEvent: false });
     this.showTransferModal.set(true);
   }
 

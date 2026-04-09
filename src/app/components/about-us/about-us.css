@@ -1,0 +1,67 @@
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-container.about-floating {
+  max-width: none;
+  margin: 0;
+  padding-top: 4.5rem !important;
+}
+
+.about-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2rem;
+}
+
+.about-card:hover {
+  transform: translateY(-10px);
+}
+
+.icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-primary-light {
+  background-color: var(--mx-primary-light);
+}
+
+.glass-effect {
+  background: var(--mx-bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--mx-border-light);
+}
+
+.value-item i {
+  transition: transform 0.3s ease;
+}
+
+.value-item:hover i {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.animate-in {
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-text {
+  line-height: 1.6;
+  opacity: 0.9;
+}

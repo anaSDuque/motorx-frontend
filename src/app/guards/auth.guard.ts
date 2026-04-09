@@ -32,7 +32,7 @@ export const guestGuard: CanActivateFn = () => {
     return true;
   }
   const role = authService.getStoredRole();
-  router.navigate([role === 'ADMIN' ? '/admin' : '/dashboard']);
+  router.navigate([role === 'ADMIN' ? '/admin/dashboard' : '/dashboard']);
   return false;
 };
 
