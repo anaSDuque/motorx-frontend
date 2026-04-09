@@ -1,0 +1,60 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-clipboard-check me-2"></i>Recepción de motos</h3>
+</div>
+
+@if (success()) {
+  <div class="alert alert-success alert-dismissible fade show">
+    {{ success() }}
+    <button type="button" class="btn-close" (click)="success.set('')"></button>
+  </div>
+}
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible fade show">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')"></button>
+  </div>
+}
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 h-100">
+      <div class="card-header bg-transparent fw-semibold">1) Iniciar recepción</div>
+      <div class="card-body">
+        <p class="text-muted small">
+          Envía el código de 4 dígitos al cliente y cambia la cita a estado <strong>AWAITING_CONFIRMATION</strong>.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">ID de cita</label>
+          <input type="number" class="form-control" [ngModel]="appointmentId()" (ngModelChange)="appointmentId.set($event)" name="appointmentId" min="1" required />
+        </div>
+        <button class="btn btn-primary" (click)="initiateReception()" [disabled]="loadingInitiate()">
+          @if (loadingInitiate()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Iniciar recepción
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card border-0 h-100">
+      <div class="card-header bg-transparent fw-semibold">2) Confirmar recepción</div>
+      <div class="card-body">
+        <p class="text-muted small">
+          Valida placa + código para cambiar la cita a estado <strong>IN_PROGRESS</strong>.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">Placa</label>
+          <input class="form-control text-uppercase" [ngModel]="licensePlate()" (ngModelChange)="licensePlate.set($event?.toUpperCase())" name="licensePlate" placeholder="ABC12D" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Código de verificación</label>
+          <input class="form-control" [ngModel]="verificationCode()" (ngModelChange)="verificationCode.set($event)" name="verificationCode" maxlength="4" required />
+        </div>
+        <button class="btn btn-primary" (click)="confirmReception()" [disabled]="loadingConfirm()">
+          @if (loadingConfirm()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Confirmar recepción
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

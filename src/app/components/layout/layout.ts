@@ -21,6 +21,22 @@ export class Layout {
     return this.authService.getStoredRole() === 'ADMIN';
   }
 
+  protected get isEmployee(): boolean {
+    return this.authService.getStoredRole() === 'EMPLOYEE';
+  }
+
+  protected get isClient(): boolean {
+    return !this.isAdmin && !this.isEmployee;
+  }
+
+  protected get canAccessStaffModules(): boolean {
+    return this.isAdmin || this.isEmployee;
+  }
+
+  protected toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+
   protected onLogout(): void {
     this.authService.logout().subscribe({
       next: () => { },

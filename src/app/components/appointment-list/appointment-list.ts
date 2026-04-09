@@ -63,6 +63,7 @@ export class AppointmentList implements OnInit {
   protected getStatusBadgeClass(status: string): string {
     const map: Record<string, string> = {
       SCHEDULED: 'badge-scheduled',
+      AWAITING_CONFIRMATION: 'badge-scheduled',
       IN_PROGRESS: 'badge-in-progress',
       COMPLETED: 'badge-completed',
       CANCELLED: 'badge-cancelled',
@@ -75,6 +76,7 @@ export class AppointmentList implements OnInit {
   protected getStatusLabel(status: string): string {
     const map: Record<string, string> = {
       SCHEDULED: 'Agendada',
+      AWAITING_CONFIRMATION: 'En confirmación',
       IN_PROGRESS: 'En progreso',
       COMPLETED: 'Completada',
       CANCELLED: 'Cancelada',

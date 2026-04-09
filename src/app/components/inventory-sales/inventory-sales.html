@@ -1,0 +1,133 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-box-arrow-up-right me-2"></i>Ventas de inventario</h3>
+</div>
+
+@if (dailySummary(); as daily) {
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Ventas hoy</h6>
+          <div class="display-6 fw-bold">{{ daily.totalTransactions }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Items vendidos hoy</h6>
+          <div class="display-6 fw-bold">{{ daily.totalItemsSold }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Total día</h6>
+          <div class="display-6 fw-bold">{{ daily.totalAmount }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (success()) {
+  <div class="alert alert-success alert-dismissible fade show">
+    {{ success() }}
+    <button type="button" class="btn-close" (click)="success.set('')"></button>
+  </div>
+}
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible fade show">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')"></button>
+  </div>
+}
+
+<div class="card border-0 mb-4">
+  <div class="card-header bg-transparent fw-semibold">Registrar venta</div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">ID cita (opcional)</label>
+        <input type="number" class="form-control" [ngModel]="appointmentId()" (ngModelChange)="appointmentId.set($event)" name="appointmentId" min="1" />
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Notas</label>
+        <input class="form-control" [ngModel]="notes()" (ngModelChange)="notes.set($event)" name="notes" />
+      </div>
+    </div>
+
+    @for (item of items(); track $index) {
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col-md-8">
+          <label class="form-label">Repuesto</label>
+          <select class="form-select" [ngModel]="item.spareId" (ngModelChange)="updateItem($index, { spareId: $event })" [name]="'sale_spare_' + $index" required>
+            <option [ngValue]="null" disabled>Seleccione un repuesto</option>
+            @for (spare of spares(); track spare.id) {
+              <option [ngValue]="spare.id">{{ spare.spareCode }} - {{ spare.name }} (Stock: {{ spare.quantity }})</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Cantidad</label>
+          <input type="number" class="form-control" [ngModel]="item.quantity" (ngModelChange)="updateItem($index, { quantity: $event })" [name]="'sale_qty_' + $index" min="1" required />
+        </div>
+        <div class="col-md-2 text-end">
+          <button class="btn btn-outline-danger" type="button" (click)="removeItem($index)" [disabled]="items().length === 1">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="mb-3">
+      <button class="btn btn-sm btn-outline-primary" type="button" (click)="addItem()">
+        <i class="bi bi-plus-lg me-1"></i>Agregar item
+      </button>
+    </div>
+
+    <button class="btn btn-primary" type="button" (click)="createSale()" [disabled]="creating()">
+      @if (creating()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Registrar venta
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  <div class="card border-0">
+    <div class="card-header bg-transparent fw-semibold">Histórico de ventas</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Items</th>
+            <th>Cita</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sale of sales(); track sale.id) {
+            <tr>
+              <td class="fw-semibold">#{{ sale.id }}</td>
+              <td>{{ sale.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ sale.total }}</td>
+              <td>{{ sale.items.length }}</td>
+              <td>{{ sale.appointmentId ?? '-' }}</td>
+              <td>{{ sale.notes ?? '-' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No hay ventas registradas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

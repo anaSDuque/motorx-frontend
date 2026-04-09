@@ -90,7 +90,7 @@ export class AdminAgenda implements OnInit {
 
   protected getStatusBadgeClass(status: string): string {
     const map: Record<string, string> = {
-      SCHEDULED: 'badge-scheduled', IN_PROGRESS: 'badge-in-progress',
+      SCHEDULED: 'badge-scheduled', AWAITING_CONFIRMATION: 'badge-scheduled', IN_PROGRESS: 'badge-in-progress',
       COMPLETED: 'badge-completed', CANCELLED: 'badge-cancelled',
       REJECTED: 'badge-rejected', NO_SHOW: 'badge-no-show',
     };
@@ -99,7 +99,7 @@ export class AdminAgenda implements OnInit {
 
   protected getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      SCHEDULED: 'Agendada', IN_PROGRESS: 'En progreso',
+      SCHEDULED: 'Agendada', AWAITING_CONFIRMATION: 'En confirmación', IN_PROGRESS: 'En progreso',
       COMPLETED: 'Completada', CANCELLED: 'Cancelada',
       REJECTED: 'Rechazada', NO_SHOW: 'No asistió',
     };

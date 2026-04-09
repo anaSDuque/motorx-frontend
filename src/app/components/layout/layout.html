@@ -9,65 +9,100 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <!-- Client Navigation -->
-      @if (!isAdmin) {
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
-            <i class="bi bi-house me-1"></i>{{ 'nav.home' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/vehicles" routerLinkActive="active">
-            <i class="bi bi-bicycle me-1"></i>{{ 'nav.myBikes' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/appointments" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <i class="bi bi-calendar-check me-1"></i>{{ 'nav.myAppointments' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/appointments/new" routerLinkActive="active">
-            <i class="bi bi-plus-circle me-1"></i>{{ 'nav.scheduleAppointment' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/about-us" routerLinkActive="active">
-            <i class="bi bi-info-circle me-1"></i>{{ 'nav.aboutUs' | translate }}
-          </a>
-        </li>
-      </ul>
+      @if (isClient) {
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+              <i class="bi bi-house me-1"></i>Inicio
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/vehicles" routerLinkActive="active">
+              <i class="bi bi-bicycle me-1"></i>Mis motos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/appointments" routerLinkActive="active">
+              <i class="bi bi-calendar-check me-1"></i>Mis citas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/appointments/new" routerLinkActive="active">
+              <i class="bi bi-plus-circle me-1"></i>Agendar cita
+            </a>
+          </li>
+        </ul>
+      }
+
+      @if (canAccessStaffModules) {
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/spares" routerLinkActive="active">
+              <i class="bi bi-box-seam me-1"></i>Repuestos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/inventory/purchases" routerLinkActive="active">
+              <i class="bi bi-box-arrow-in-down me-1"></i>Compras
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/inventory/sales" routerLinkActive="active">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Ventas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/reception" routerLinkActive="active">
+              <i class="bi bi-clipboard-check me-1"></i>Recepción
+            </a>
+          </li>
+        </ul>
       }
 
       <!-- Admin Navigation -->
       @if (isAdmin) {
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <i class="bi bi-speedometer2 me-1"></i>{{ 'nav.agenda' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/calendar" routerLinkActive="active">
-            <i class="bi bi-calendar3 me-1"></i>{{ 'nav.calendar' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/employees" routerLinkActive="active">
-            <i class="bi bi-people me-1"></i>{{ 'nav.employees' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
-            <i class="bi bi-person-lines-fill me-1"></i>{{ 'nav.users' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/vehicles" routerLinkActive="active">
-            <i class="bi bi-bicycle me-1"></i>{{ 'nav.vehicles' | translate }}
-          </a>
-        </li>
-      </ul>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+              <i class="bi bi-speedometer2 me-1"></i>Agenda
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/calendar" routerLinkActive="active">
+              <i class="bi bi-calendar3 me-1"></i>Calendario
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/employees" routerLinkActive="active">
+              <i class="bi bi-people me-1"></i>Empleados
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
+              <i class="bi bi-person-lines-fill me-1"></i>Usuarios
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/vehicles" routerLinkActive="active">
+              <i class="bi bi-bicycle me-1"></i>Vehículos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/unplanned" routerLinkActive="active">
+              <i class="bi bi-exclamation-triangle me-1"></i>Imprevista
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/metrics" routerLinkActive="active">
+              <i class="bi bi-graph-up-arrow me-1"></i>Métricas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/logs" routerLinkActive="active">
+              <i class="bi bi-journal-text me-1"></i>Logs
+            </a>
+          </li>
+        </ul>
       }
 
       <!-- Right side -->
