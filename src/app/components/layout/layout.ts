@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
@@ -12,6 +13,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 })
 export class Layout {
   protected readonly authService = inject(AuthService);
+  protected readonly themeService = inject(ThemeService);
 
   protected get userName(): string {
     return this.authService.currentUser()?.name ?? this.authService.getStoredUserName() ?? 'Usuario';
