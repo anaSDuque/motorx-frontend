@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard } from './guards/auth.guard';
+import { authGuard, adminGuard, guestGuard, staffGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   /* ── Guest routes (no auth) ── */
@@ -66,6 +66,34 @@ export const routes: Routes = [
             (m) => m.CreateAppointment
           ),
       },
+      {
+        path: 'spares',
+        canActivate: [staffGuard],
+        loadComponent: () =>
+          import('./components/spare-list/spare-list').then((m) => m.SpareList),
+      },
+      {
+        path: 'inventory/purchases',
+        canActivate: [staffGuard],
+        loadComponent: () =>
+          import('./components/inventory-purchases/inventory-purchases').then(
+            (m) => m.InventoryPurchases
+          ),
+      },
+      {
+        path: 'inventory/sales',
+        canActivate: [staffGuard],
+        loadComponent: () =>
+          import('./components/inventory-sales/inventory-sales').then(
+            (m) => m.InventorySales
+          ),
+      },
+      {
+        path: 'reception',
+        canActivate: [staffGuard],
+        loadComponent: () =>
+          import('./components/reception/reception').then((m) => m.Reception),
+      },
 
       /* Admin routes */
       {
@@ -115,6 +143,20 @@ export const routes: Routes = [
           import('./components/admin-unplanned/admin-unplanned').then(
             (m) => m.AdminUnplanned
           ),
+      },
+      {
+        path: 'admin/metrics',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./components/admin-metrics/admin-metrics').then(
+            (m) => m.AdminMetrics
+          ),
+      },
+      {
+        path: 'admin/logs',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./components/admin-logs/admin-logs').then((m) => m.AdminLogs),
       },
 
       /* Default redirect */
