@@ -166,7 +166,7 @@ export class Login {
 
   private navigateByRole(role: Role | string): void {
     if (role === Role.ADMIN) {
-      this.router.navigate(['/admin']);
+      this.router.navigate(['/admin/dashboard']);
     } else {
       this.router.navigate(['/dashboard']);
     }

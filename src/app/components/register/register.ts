@@ -1,11 +1,27 @@
 import { Component, signal, computed, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
 import { MathCaptcha } from '../math-captcha/math-captcha';
 import { AboutUs } from '../about-us/about-us';
+
+function passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+  const value = (control.value ?? '') as string;
+  const hasUppercase = /[A-Z]/.test(value);
+  const hasNumber = /[0-9]/.test(value);
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(value);
+  const minLength = value.length >= 8;
+  return hasUppercase && hasNumber && hasSpecial && minLength ? null : { passwordStrength: true };
+}
+
+function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+  const pass = group.get('password')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  return pass === confirm ? null : { passwordsMismatch: true };
+
+}
 
 @Component({
   selector: 'app-register',
@@ -25,13 +41,13 @@ export class Register {
 
   protected readonly registerForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
-    dni: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    dni: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(Register.DNI_REGEX)] }),
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
-    phone: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    phone: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(Register.PHONE_REGEX)] }),
+    password: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(8), passwordStrengthValidator] }),
     confirmPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     acceptDataTreatment: new FormControl(false, { nonNullable: true, validators: [Validators.requiredTrue] }),
-  });
+  }, { validators: passwordsMatchValidator });
 
   protected readonly loading = signal(false);
   protected readonly error = signal('');
@@ -42,12 +58,14 @@ export class Register {
 
   constructor() {
     this.dniControl.valueChanges.subscribe((value) => {
-      const sanitized = value.replace(/\D/g, '').slice(0, 12);
-      if (sanitized !== value) this.dniControl.setValue(sanitized, { emitEvent: false });
+      const str = value == null ? '' : String(value);
+      const sanitized = str.replace(/\D/g, '').slice(0, 12);
+      if (sanitized !== str) this.dniControl.setValue(sanitized, { emitEvent: false });
     });
     this.phoneControl.valueChanges.subscribe((value) => {
-      const sanitized = value.replace(/\D/g, '').slice(0, 10);
-      if (sanitized !== value) this.phoneControl.setValue(sanitized, { emitEvent: false });
+      const str = value == null ? '' : String(value);
+      const sanitized = str.replace(/\D/g, '').slice(0, 10);
+      if (sanitized !== str) this.phoneControl.setValue(sanitized, { emitEvent: false });
     });
   }
 

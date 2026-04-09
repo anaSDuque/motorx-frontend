@@ -75,6 +75,19 @@ export const routes: Routes = [
       /* Admin routes */
       {
         path: 'admin',
+        pathMatch: 'full',
+        redirectTo: 'admin/dashboard',
+      },
+      {
+        path: 'admin/dashboard',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./components/admin-dashboard/admin-dashboard').then(
+            (m) => m.AdminDashboard
+          ),
+      },
+      {
+        path: 'admin/agenda',
         canActivate: [adminGuard],
         loadComponent: () =>
           import('./components/admin-agenda/admin-agenda').then(

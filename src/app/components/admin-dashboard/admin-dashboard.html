@@ -1,0 +1,188 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Panel administrativo</h2>
+    <p class="text-muted mb-0">Resumen operativo de la agenda y recursos del taller</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <input type="date" class="form-control" style="width: auto" [value]="today()" disabled />
+    <button class="btn btn-outline-primary" (click)="loadDashboard()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
+  <button type="button" class="btn-close" (click)="error.set('')"></button>
+</div>
+}
+
+@if (loading()) {
+<div class="text-center py-5">
+  <div class="spinner-border text-primary"></div>
+  <p class="text-muted mt-2 mb-0">Cargando metricas del dashboard...</p>
+</div>
+} @else {
+<div class="row g-3 mb-4">
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">Citas hoy</p>
+        <h3 class="metric-value">{{ agenda().length }}</h3>
+        <small class="text-muted">Total en agenda diaria</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">En progreso</p>
+        <h3 class="metric-value text-warning-emphasis">{{ inProgressToday() }}</h3>
+        <small class="text-muted">Atenciones activas</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">Pendientes</p>
+        <h3 class="metric-value text-primary">{{ scheduledToday() }}</h3>
+        <small class="text-muted">Por iniciar</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">Usuarios activos</p>
+        <h3 class="metric-value">{{ activeUsers() }}</h3>
+        <small class="text-muted">Cuentas habilitadas</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">Mecanicos disp.</p>
+        <h3 class="metric-value text-success">{{ availableTechnicians() }}</h3>
+        <small class="text-muted">Estado AVAILABLE</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="card metric-card border-0 h-100">
+      <div class="card-body">
+        <p class="metric-label">Cumplimiento</p>
+        <h3 class="metric-value">{{ completionRate() }}%</h3>
+        <small class="text-muted">Completadas hoy</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-3 col-sm-6">
+    <a routerLink="/admin/agenda" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-list-task fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Gestionar agenda</h6>
+        <p class="text-muted small mb-0">Revisar y cancelar citas del dia</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-lg-3 col-sm-6">
+    <a routerLink="/admin/calendar" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-calendar3 fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Ver calendario</h6>
+        <p class="text-muted small mb-0">Consultar citas por rango de fechas</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-lg-3 col-sm-6">
+    <a routerLink="/admin/employees" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-people fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Gestionar empleados</h6>
+        <p class="text-muted small mb-0">Controlar tecnicos y recepcion</p>
+      </div>
+    </a>
+  </div>
+  <div class="col-lg-3 col-sm-6">
+    <a routerLink="/admin/unplanned" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-plus-square fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Cita no planeada</h6>
+        <p class="text-muted small mb-0">Registrar casos urgentes</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card border-0 mb-3">
+  <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h5 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2"></i>Agenda de hoy</h5>
+    <a class="btn btn-sm btn-outline-primary" routerLink="/admin/agenda">Abrir agenda completa</a>
+  </div>
+  <div class="card-body p-0">
+    @if (agenda().length === 0) {
+      <div class="text-center py-4 text-muted">No hay citas registradas para hoy.</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Cliente</th>
+              <th>Vehiculo</th>
+              <th>Tipo</th>
+              <th>Tecnico</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (apt of agenda().slice(0, 8); track apt.id) {
+              <tr>
+                <td class="fw-semibold">{{ apt.startTime }} - {{ apt.endTime }}</td>
+                <td>
+                  {{ apt.clientFullName }}
+                  <br />
+                  <small class="text-muted">{{ apt.clientEmail }}</small>
+                </td>
+                <td>{{ apt.vehiclePlate }}</td>
+                <td>{{ getTypeLabel(apt.appointmentType) }}</td>
+                <td>{{ apt.technicianFullName ?? 'Sin asignar' }}</td>
+                <td>
+                  <span class="badge" [class]="getStatusBadgeClass(apt.status)">
+                    {{ getStatusLabel(apt.status) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <p class="text-muted mb-1">Usuarios en sistema</p>
+        <h4 class="fw-bold mb-0">{{ users().length }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 h-100">
+      <div class="card-body">
+        <p class="text-muted mb-1">Vehiculos registrados</p>
+        <h4 class="fw-bold mb-0">{{ vehicles().length }}</h4>
+      </div>
+    </div>
+  </div>
+</div>
+}
