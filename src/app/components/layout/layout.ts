@@ -1,18 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { ThemeService } from '../../services/theme.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './layout.html',
-  styleUrl: './layout.css',
+  styleUrls: ['./layout.css'],
 })
 export class Layout {
   protected readonly authService = inject(AuthService);
-  protected readonly themeService = inject(ThemeService);
 
   protected get userName(): string {
     return this.authService.currentUser()?.name ?? this.authService.getStoredUserName() ?? 'Usuario';
@@ -40,7 +39,7 @@ export class Layout {
 
   protected onLogout(): void {
     this.authService.logout().subscribe({
-      next: () => {},
+      next: () => { },
       error: () => this.authService.clearSession(),
     });
   }

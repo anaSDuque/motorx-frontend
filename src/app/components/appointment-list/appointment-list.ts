@@ -1,19 +1,22 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserAppointmentService } from '../../services/user-appointment.service';
-import { AppointmentResponseDTO } from '../../models';
+import { AppointmentResponseDTO, APPOINTMENT_STATUS_LABELS, APPOINTMENT_TYPE_LABELS } from '../../models';
+import { AppointmentDetailModal } from '../appointment-detail/appointment-detail';
 
 @Component({
   selector: 'app-appointment-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AppointmentDetailModal],
   templateUrl: './appointment-list.html',
-  styleUrl: './appointment-list.css',
+  styleUrls: ['./appointment-list.css'],
 })
 export class AppointmentList implements OnInit {
   private readonly appointmentService = inject(UserAppointmentService);
 
   protected readonly appointments = signal<AppointmentResponseDTO[]>([]);
+  protected readonly selectedAppointment = signal<AppointmentResponseDTO | null>(null);
+  protected readonly showModal = signal(false);
   protected readonly loading = signal(true);
   protected readonly success = signal('');
   protected readonly error = signal('');
@@ -41,6 +44,20 @@ export class AppointmentList implements OnInit {
       },
       error: (err) => this.error.set(err.error?.message ?? 'Error al cancelar'),
     });
+  }
+
+  protected viewDetails(apt: AppointmentResponseDTO): void {
+    this.selectedAppointment.set(apt);
+    this.showModal.set(true);
+  }
+
+  protected onModalClosed(): void {
+    this.showModal.set(false);
+    this.selectedAppointment.set(null);
+  }
+
+  protected onAppointmentUpdated(): void {
+    this.loadAppointments();
   }
 
   protected getStatusBadgeClass(status: string): string {

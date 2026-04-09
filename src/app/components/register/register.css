@@ -1,10 +1,220 @@
-.register-wrapper {
-  background: linear-gradient(135deg, var(--mx-primary) 0%, var(--mx-dark) 100%);
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
 }
 
-.register-card {
+.register-visual-section {
+  flex: 1.2;
+  background: radial-gradient(circle at center, var(--mx-primary) 0%, var(--mx-dark) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-visual-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4v-4H4v4H0v2h4v4h2v-4h4v-2H6zm30 0v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.register-form-section {
+  flex: 1.5;
+  background-color: var(--mx-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.register-form-card {
   width: 100%;
-  max-width: 480px;
-  border-radius: 16px;
-  background-color: var(--mx-bg-card);
+  max-width: 600px;
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 992px) {
+  .register-container {
+    flex-direction: column;
+  }
+
+  .register-visual-section {
+    padding: 3rem 2rem;
+    flex: none;
+    text-align: center;
+  }
+
+  .register-form-section {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.register-content {
+  animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.text-motorx-primary {
+  color: var(--mx-primary);
+  filter: drop-shadow(0 0 8px rgba(26, 115, 232, 0.3));
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: var(--mx-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Make form controls more visible against background */
+.register-form-card .form-control {
+  border: 1.25px solid rgba(0, 0, 0, 0.12);
+  background-color: #fff;
+}
+
+.register-form-card .form-control:focus {
+  box-shadow: none;
+  border-color: var(--mx-primary);
+}
+
+.register-form-card .input-group-text {
+  border: 1.25px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Invalid styles when touched or server-side errors */
+.register-form-card .form-control.is-invalid {
+  border-color: #dc3545;
+}
+.extra-small {
+  font-size: 0.8rem;
+}
+
+/* Make the data-treatment checkbox more visible in the register form */
+.register-form-card .form-check-input {
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
+  background-color: #fff;
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: 0.25rem;
+}
+
+.register-form-card .form-check-input:checked {
+  background-color: var(--mx-primary);
+  border-color: var(--mx-primary);
+}
+
+.register-form-card .form-check-input:focus {
+  box-shadow: 0 0 0 0.15rem rgba(26, 115, 232, 0.12);
+  border-color: var(--mx-primary);
+}
+
+/* Keep About-us button text visible on hover even with bg-white helper class */
+.register-container > a.btn-outline-primary.bg-white {
+  color: var(--mx-primary);
+  background-color: #ffffff;
+  border-color: rgba(13, 110, 253, 0.25);
+}
+.register-container > a.btn-outline-primary.bg-white:hover,
+.register-container > a.btn-outline-primary.bg-white:focus {
+  background-color: #ffffff !important;
+  color: var(--mx-primary) !important;
+  border-color: rgba(13, 110, 253, 0.4) !important;
+  text-decoration: none;
+}
+
+.data-policy-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1055;
+  background: rgba(17, 24, 39, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.data-policy-modal {
+  width: min(900px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.3);
+  overflow: hidden;
+}
+
+.data-policy-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.data-policy-modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.data-policy-modal-body {
+  overflow-y: auto;
+  padding: 1.25rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.data-policy-modal-body h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.data-policy-modal-body p {
+  margin-bottom: 0.9rem;
+}
+
+.data-policy-modal-body ul {
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+}
+
+.data-policy-modal-body li {
+  margin-bottom: 0.5rem;
+}
+
+.data-policy-modal-footer {
+  padding: 0.9rem 1.25rem 1.2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: flex-end;
 }

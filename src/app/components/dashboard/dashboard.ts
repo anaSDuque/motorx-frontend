@@ -10,7 +10,7 @@ import { AppointmentResponseDTO, VehicleResponseDTO } from '../../models';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  styleUrls: ['./dashboard.css'],
 })
 export class Dashboard implements OnInit {
   private readonly authService = inject(AuthService);

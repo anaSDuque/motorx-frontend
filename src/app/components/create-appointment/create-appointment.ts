@@ -15,7 +15,7 @@ import {
   standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './create-appointment.html',
-  styleUrl: './create-appointment.css',
+  styleUrls: ['./create-appointment.css'],
 })
 export class CreateAppointment implements OnInit {
   private readonly appointmentService = inject(UserAppointmentService);
@@ -51,6 +51,7 @@ export class CreateAppointment implements OnInit {
 
   // Step 3: Details
   protected readonly currentMileage = signal<number>(0);
+  protected readonly currentMileageTouched = signal(false);
   protected readonly clientNotes = signal('');
 
   protected readonly appointmentTypes = [
@@ -80,6 +81,31 @@ export class CreateAppointment implements OnInit {
     }
   }
 
+  private isTypeNotAllowedMessage(msg?: string): boolean {
+    if (!msg) return false;
+    const s = msg.toLowerCase();
+    const keywords = ['marca', 'no está permitido', 'no permitido', 'tipo de cita no', 'tipo no está', 'not allowed', 'not permitted'];
+    return keywords.some((k) => s.includes(k));
+  }
+
+  protected isSunday(dateStr: string): boolean {
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.getDay() === 0;
+    } catch {
+      return false;
+    }
+  }
+
+  protected onDateChange(newDate: string): void {
+    this.appointmentDate.set(newDate);
+    // clear previous errors
+    this.error.set('');
+    if (this.isSunday(newDate)) {
+      this.error.set('Los domingos no están disponibles para agendar citas');
+    }
+  }
+
   protected checkPlateRestriction(): void {
     if (!this.selectedVehicleId() || !this.appointmentDate()) return;
     this.checkingPlate.set(true);
@@ -103,6 +129,12 @@ export class CreateAppointment implements OnInit {
   }
 
   protected goToStep2(): void {
+    // Validate required selections before loading slots
+    if (!this.selectedVehicleId() || !this.appointmentDate() || !this.selectedType()) {
+      this.error.set('Selecciona vehículo, tipo y fecha antes de continuar');
+      return;
+    }
+
     if (this.plateOk()) {
       this.loadSlots();
       this.step.set(2);
@@ -115,12 +147,36 @@ export class CreateAppointment implements OnInit {
       .getAvailableSlots(this.appointmentDate(), this.selectedType() as AppointmentType)
       .subscribe({
         next: (res) => {
-          this.availableSlots.set(res.availableSlots);
+            console.debug('[create-appointment] getAvailableSlots response:', res);
+          let slots = res.availableSlots;
+          // Filter out past time slots when the selected date is today
+          const todayStr = new Date().toISOString().split('T')[0];
+          if (this.appointmentDate() === todayStr) {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            slots = slots.filter((slot) => slot.startTime > currentTime);
+          }
+          this.availableSlots.set(slots);
           this.loadingSlots.set(false);
         },
         error: (err) => {
+          console.error('[create-appointment] getAvailableSlots error:', err);
           this.loadingSlots.set(false);
-          this.error.set(err.error?.message ?? 'Error al cargar horarios');
+          // Prefer backend message when available
+          const serverMsg = err.error?.message;
+          if (this.isTypeNotAllowedMessage(serverMsg)) {
+            // return user to step 1 so they can change vehicle/type
+            this.availableSlots.set([]);
+            this.selectedSlot.set(null);
+            this.step.set(1);
+          }
+          if (err.status === 400) {
+            this.error.set(serverMsg ?? 'Datos inválidos para consultar horarios (tipo/fecha)');
+          } else if (err.status === 409) {
+            this.error.set(serverMsg ?? 'No es posible consultar horarios para esta fecha.');
+          } else {
+            this.error.set(serverMsg ?? 'Error al cargar horarios');
+          }
         },
       });
   }
@@ -143,35 +199,76 @@ export class CreateAppointment implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    const notes = this.clientNotes()
-      .split('\n')
-      .map((n) => n.trim())
-      .filter((n) => n.length > 0);
+    // Require mileage
+    this.currentMileageTouched.set(true);
+    if (!this.currentMileage() || this.currentMileage() <= 0) {
+      this.loading.set(false);
+      this.error.set('El kilometraje es obligatorio');
+      return;
+    }
 
-    this.appointmentService
-      .createAppointment({
-        vehicleId: this.selectedVehicleId()!,
-        appointmentType: this.selectedType() as AppointmentType,
-        appointmentDate: this.appointmentDate(),
-        startTime: this.selectedSlot()!.startTime,
-        currentMileage: this.currentMileage(),
-        clientNotes: notes.length > 0 ? notes : undefined,
-      })
-      .subscribe({
-        next: () => {
+    // Re-validate selected slot against latest available slots to avoid server-side "out of hours" errors
+    if (!this.selectedSlot()) {
+      this.loading.set(false);
+      this.error.set('Selecciona un horario antes de confirmar');
+      return;
+    }
+
+    this.appointmentService.getAvailableSlots(this.appointmentDate(), this.selectedType() as AppointmentType).subscribe({
+      next: (res) => {
+        console.debug('[create-appointment] revalidate slots response:', res);
+        const exists = res.availableSlots.some((s) => s.startTime === this.selectedSlot()!.startTime);
+        if (!exists) {
           this.loading.set(false);
-          this.router.navigate(['/appointments']);
-        },
-        error: (err) => {
-          this.loading.set(false);
-          this.error.set(err.error?.message ?? 'Error al agendar la cita');
-        },
-      });
+          this.error.set('El horario seleccionado ya no está disponible. Actualiza la lista de horarios.');
+          // refresh available slots in UI
+          this.availableSlots.set(res.availableSlots);
+          return;
+        }
+
+        // proceed to create
+        const notes = this.clientNotes()
+          .split('\n')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+
+        this.appointmentService
+          .createAppointment({
+            vehicleId: this.selectedVehicleId()!,
+            appointmentType: this.selectedType() as AppointmentType,
+            appointmentDate: this.appointmentDate(),
+            startTime: this.selectedSlot()!.startTime,
+            currentMileage: this.currentMileage(),
+            clientNotes: notes.length > 0 ? notes : undefined,
+          })
+          .subscribe({
+            next: () => {
+              this.loading.set(false);
+              this.router.navigate(['/appointments']);
+            },
+            error: (err) => {
+              console.error('[create-appointment] createAppointment error:', err);
+              this.loading.set(false);
+              const serverMsg = err.error?.message;
+              if (this.isTypeNotAllowedMessage(serverMsg)) {
+                // go back to step 1 so user can change selection
+                this.step.set(1);
+                this.availableSlots.set([]);
+                this.selectedSlot.set(null);
+              }
+              this.error.set(serverMsg ?? 'Error al agendar la cita');
+            },
+          });
+      },
+      error: (err) => {
+        console.error('[create-appointment] revalidate getAvailableSlots error:', err);
+        this.loading.set(false);
+        this.error.set(err.error?.message ?? 'Error al verificar disponibilidad antes de crear la cita');
+      },
+    });
   }
 
   protected get minDate(): string {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
   }
 }

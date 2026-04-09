@@ -1,76 +1,350 @@
-<div class="register-wrapper d-flex align-items-center justify-content-center min-vh-100">
-  <div class="card register-card shadow-lg border-0">
-    <div class="card-body p-5">
-      <div class="text-center mb-4">
-        <i class="bi bi-gear-wide-connected display-3 text-motorx-primary"></i>
-        <h2 class="mt-2 fw-bold">Crear cuenta</h2>
-        <p class="text-muted">Regístrate en MotorX</p>
+<div class="register-container position-relative">
+  <!-- Absolute About Us Link -->
+  <a routerLink="/about-us"
+    class="btn btn-sm btn-outline-primary position-absolute top-0 end-0 m-4 z-3 rounded-pill px-3 shadow-sm bg-white">
+    <i class="bi bi-info-circle me-2"></i>{{ 'nav.aboutUs' | translate }}
+  </a>
+
+  <!-- Visual Branding Side -->
+  <div class="register-visual-section d-none d-lg-flex">
+    <div class="visual-content animate-in">
+      <i class="bi bi-person-plus-fill display-1 mb-4"></i>
+      <h1 class="visual-title tracking-tight">{{ 'register.brandTitle' | translate }}</h1>
+      <p class="visual-tagline">{{ 'register.brandSubtitle' | translate }}</p>
+
+      <div class="mt-5 text-start opacity-75">
+        <p class="mb-4 fs-5 fw-light">{{ 'register.brandBenefits' | translate }}</p>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-shield-check me-3 fs-4"></i>
+          <span>{{ 'register.benefit1' | translate }}</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-calendar3 me-3 fs-4"></i>
+          <span>{{ 'register.benefit2' | translate }}</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-clock-history me-3 fs-4"></i>
+          <span>{{ 'register.benefit3' | translate }}</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <i class="bi bi-bell me-3 fs-4"></i>
+          <span>{{ 'register.benefit4' | translate }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="register-form-section">
+    <div class="register-form-card animate-in">
+      <!-- Logo only for mobile -->
+      <div class="text-center d-lg-none mb-4">
+        <i class="bi bi-gear-wide-connected display-3 text-motorx-primary mb-2"></i>
+        <h2 class="fw-bold tracking-tight">Motor<span class="text-motorx-primary">X</span></h2>
+      </div>
+
+      <div class="mb-5">
+        <h2 class="fw-bold fs-1 tracking-tight mb-2">{{ 'register.title' | translate }}</h2>
+        <p class="text-muted">{{ 'register.subtitle' | translate }}</p>
       </div>
 
       @if (error()) {
-        <div class="alert alert-danger py-2" role="alert">
-          <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
-        </div>
+      <div class="alert alert-danger py-3 border-0 rounded-4 mb-4 d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-circle-fill fs-5 me-3"></i>
+        <div>{{ error() }}</div>
+      </div>
       }
 
-      <form (ngSubmit)="onRegister()">
-        <div class="mb-3">
-          <label for="name" class="form-label">Nombre completo</label>
-          <input type="text" class="form-control" id="name" placeholder="Juan Pérez"
-            [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" required
-            [class.is-invalid]="fieldErrors()['name']" />
+      <form (ngSubmit)="onRegister()" class="row g-4">
+        <div class="col-md-6">
+          <label for="name" class="form-label">{{ 'register.fullName' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-person text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-1" id="name"
+              [placeholder]="'register.namePlaceholder' | translate" [ngModel]="name()"
+              (ngModelChange)="name.set($event)" (blur)="nameTouched.set(true)" name="name" required
+              [class.is-invalid]="fieldErrors()['name'] || (nameTouched() && !name().trim())" />
+          </div>
           @if (fieldErrors()['name']) {
-            <div class="invalid-feedback">{{ fieldErrors()['name'] }}</div>
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['name'] }}</div>
+          } @else if (nameTouched() && !name().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
-        <div class="mb-3">
-          <label for="dni" class="form-label">Documento de identidad</label>
-          <input type="text" class="form-control" id="dni" placeholder="1234567890"
-            [ngModel]="dni()" (ngModelChange)="dni.set($event)" name="dni" required
-            [class.is-invalid]="fieldErrors()['dni']" />
+
+        <div class="col-md-6">
+          <label for="dni" class="form-label">{{ 'register.dni' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-card-text text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-1" id="dni"
+              [placeholder]="'register.dniPlaceholder' | translate" [ngModel]="dni()" (ngModelChange)="dni.set($event)"
+              (blur)="dniTouched.set(true)" name="dni" required [class.is-invalid]="fieldErrors()['dni'] || (dniTouched() && !dni().trim())" />
+          </div>
           @if (fieldErrors()['dni']) {
-            <div class="invalid-feedback">{{ fieldErrors()['dni'] }}</div>
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['dni'] }}</div>
+          } @else if (dniTouched() && !dni().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">Correo electrónico</label>
-          <input type="email" class="form-control" id="email" placeholder="correo@ejemplo.com"
-            [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" required
-            [class.is-invalid]="fieldErrors()['email']" />
+
+        <div class="col-12">
+          <label for="email" class="form-label">{{ 'register.email' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-envelope text-muted"></i>
+            </span>
+            <input type="email" class="form-control border-start-0 ps-1" id="email"
+              [placeholder]="'register.emailPlaceholder' | translate" [ngModel]="email()"
+              (ngModelChange)="email.set($event)" (blur)="emailTouched.set(true)" name="email" required
+              [class.is-invalid]="fieldErrors()['email'] || (emailTouched() && !email().trim())" />
+          </div>
           @if (fieldErrors()['email']) {
-            <div class="invalid-feedback">{{ fieldErrors()['email'] }}</div>
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['email'] }}</div>
+          } @else if (emailTouched() && !email().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Contraseña</label>
-          <input type="password" class="form-control" id="password" placeholder="Mínimo 6 caracteres"
-            [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required
-            [class.is-invalid]="fieldErrors()['password']" />
-          @if (fieldErrors()['password']) {
-            <div class="invalid-feedback">{{ fieldErrors()['password'] }}</div>
-          }
-        </div>
-        <div class="mb-3">
-          <label for="phone" class="form-label">Teléfono</label>
-          <input type="tel" class="form-control" id="phone" placeholder="+57 310 1234567"
-            [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" required
-            [class.is-invalid]="fieldErrors()['phone']" />
+
+        <div class="col-12">
+          <label for="phone" class="form-label">{{ 'register.phone' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-phone text-muted"></i>
+            </span>
+            <input type="tel" class="form-control border-start-0 ps-1" id="phone"
+              [placeholder]="'register.phonePlaceholder' | translate" [ngModel]="phone()"
+              (ngModelChange)="phone.set($event)" (blur)="phoneTouched.set(true)" name="phone" required
+              [class.is-invalid]="fieldErrors()['phone'] || (phoneTouched() && !phone().trim())" />
+          </div>
           @if (fieldErrors()['phone']) {
-            <div class="invalid-feedback">{{ fieldErrors()['phone'] }}</div>
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['phone'] }}</div>
+          } @else if (phoneTouched() && !phone().trim()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 mt-2" [disabled]="loading()">
-          @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-2"></span>
+        <!-- Move password below phone and make stacked for better layout -->
+        <div class="col-12">
+          <label for="password" class="form-label">{{ 'register.password' | translate }}</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-lock text-muted"></i>
+            </span>
+            <input [type]="showPassword() ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-1"
+              id="password" placeholder="********" [ngModel]="password()" (ngModelChange)="password.set($event)"
+              (blur)="passwordTouched.set(true)" name="password" required [class.is-invalid]="fieldErrors()['password'] || (passwordTouched() && !password())" />
+            <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted"
+              [class.border-danger]="fieldErrors()['password']" type="button" (click)="toggleShowPassword()"
+              tabindex="-1">
+              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+          @if (fieldErrors()['password']) {
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['password'] }}</div>
+          } @else if (passwordTouched() && !password()) {
+          <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
-          Crear cuenta
-        </button>
+
+          <!-- Password rules feedback: only show after the password field was touched and it's not yet valid -->
+          @if (passwordTouched() && !pwdValid()) {
+          <div class="mt-2 ps-2 small">
+            <div [class.text-success]="pwdHasUppercase()" [class.text-danger]="passwordTouched() && !pwdHasUppercase()" [class.text-muted]="!passwordTouched() && !pwdHasUppercase()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasUppercase()" [class.bi-dash-circle]="!pwdHasUppercase()"></i>
+              Contiene al menos una letra mayúscula
+            </div>
+            <div [class.text-success]="pwdHasNumber()" [class.text-danger]="passwordTouched() && !pwdHasNumber()" [class.text-muted]="!passwordTouched() && !pwdHasNumber()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasNumber()" [class.bi-dash-circle]="!pwdHasNumber()"></i>
+              Contiene al menos un número
+            </div>
+            <div [class.text-success]="pwdHasSpecial()" [class.text-danger]="passwordTouched() && !pwdHasSpecial()" [class.text-muted]="!passwordTouched() && !pwdHasSpecial()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasSpecial()" [class.bi-dash-circle]="!pwdHasSpecial()"></i>
+              Contiene al menos un carácter especial
+            </div>
+            <div [class.text-success]="pwdHasMinLength()" [class.text-danger]="passwordTouched() && !pwdHasMinLength()" [class.text-muted]="!passwordTouched() && !pwdHasMinLength()">
+              <i class="bi" [class.bi-check2-circle]="pwdHasMinLength()" [class.bi-dash-circle]="!pwdHasMinLength()"></i>
+              Mínimo 8 caracteres
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="col-12">
+          <label for="confirmPassword" class="form-label">Repetir contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0 ps-3">
+              <i class="bi bi-lock text-muted"></i>
+            </span>
+            <input [type]="showConfirmPassword() ? 'text' : 'password'" class="form-control border-start-0 ps-1"
+              id="confirmPassword" placeholder="********" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"
+              (blur)="confirmPasswordTouched.set(true)" name="confirmPassword" required
+              [class.is-invalid]="(confirmPasswordTouched() && !passwordsMatch()) || fieldErrors()['confirmPassword']" />
+            <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button"
+              (click)="toggleShowConfirmPassword()" tabindex="-1">
+              <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()"></i>
+            </button>
+          </div>
+          @if (confirmPasswordTouched() && !passwordsMatch()) {
+          <div class="text-danger extra-small mt-1 ps-2">Las contraseñas no coinciden</div>
+          } @else if (fieldErrors()['confirmPassword']) {
+          <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['confirmPassword'] }}</div>
+          }
+
+        </div>
+
+        <div class="col-12 mt-3">
+          <div class="form-check custom-checkbox">
+            <input class="form-check-input" type="checkbox" id="dataTreatment" [ngModel]="acceptDataTreatment()"
+              (ngModelChange)="acceptDataTreatment.set($event)" name="acceptDataTreatment" required />
+            <label class="form-check-label ms-2 text-muted small" for="dataTreatment">
+              {{ 'register.dataTreatment' | translate }}
+              <button type="button" class="btn btn-link p-0 align-baseline text-motorx-primary text-decoration-none fw-bold"
+                (click)="openDataTreatmentModal()">
+                {{ 'register.dataTreatmentLink' | translate }}
+              </button>
+              {{ 'register.dataTreatmentSuffix' | translate }}
+            </label>
+          </div>
+        </div>
+
+        <div class="col-12 mt-4">
+          <app-math-captcha (solved)="captchaSolved.set($event)"></app-math-captcha>
+        </div>
+
+        <div class="col-12 mt-2">
+          <button type="submit" class="btn btn-primary w-100 py-3 mt-2"
+            [disabled]="loading() || !captchaSolved() || !acceptDataTreatment()">
+            @if (loading()) {
+            <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+            <span>{{ 'register.registerButton' | translate }}</span>
+            <i class="bi bi-arrow-right ms-2"></i>
+            }
+          </button>
+        </div>
       </form>
 
-      <div class="text-center mt-4">
-        <span class="text-muted">¿Ya tienes cuenta?</span>
-        <a routerLink="/login" class="text-decoration-none text-motorx-primary ms-1">Inicia sesión</a>
+      <div class="text-center mt-5">
+        <span class="text-muted">{{ 'register.hasAccount' | translate }}</span>
+        <a routerLink="/login" class="text-decoration-none fw-bold text-motorx-primary ms-2">
+          {{ 'register.loginHere' | translate }}
+        </a>
       </div>
     </div>
   </div>
 </div>
+
+@if (showDataTreatmentModal()) {
+<div class="data-policy-modal-backdrop" (click)="closeDataTreatmentModal()">
+  <div class="data-policy-modal" role="dialog" aria-modal="true" aria-label="Política de tratamiento de datos"
+    (click)="$event.stopPropagation()">
+    <div class="data-policy-modal-header">
+      <h3 class="mb-0">Política de Tratamiento de Datos Personales</h3>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeDataTreatmentModal()"></button>
+    </div>
+    <div class="data-policy-modal-body">
+      <h4>SECCIÓN 1. MARCO LEGAL Y OBJETIVO</h4>
+      <p>
+        El presente documento se establece en estricto cumplimiento de lo dispuesto en el Artículo 15 de la
+        Constitución Política de Colombia, la Ley Estatutaria 1581 de 2012, y el Decreto Reglamentario 1074 de 2015
+        (que compila el Decreto 1377 de 2013). Su objetivo es definir las directrices, procedimientos y finalidades
+        bajo las cuales nuestra aplicación, en calidad de Responsable, realizará el tratamiento (recolección,
+        almacenamiento, uso, circulación y supresión) de los datos personales suministrados por los usuarios.
+      </p>
+
+      <h4>SECCIÓN 2. IDENTIFICACIÓN DEL RESPONSABLE DEL TRATAMIENTO</h4>
+      <p>
+        Para los efectos de esta política, el Responsable del Tratamiento es la aplicación y su entidad propietaria.
+        [Nota: En esta sección deberá incluirse formalmente la Razón Social de su empresa, NIT, Dirección del domicilio
+        principal, Correo electrónico de notificaciones legales y Teléfono de contacto].
+      </p>
+
+      <h4>SECCIÓN 3. DATOS PERSONALES RECOLECTADOS Y SU NATURALEZA</h4>
+      <p>
+        Para la adecuada prestación de los servicios a través de la aplicación, el Responsable solicitará y tratará los
+        siguientes datos, los cuales tienen categoría de datos privados y semi-privados de acuerdo con la jurisprudencia
+        colombiana:
+      </p>
+      <ul>
+        <li>Nombres y apellidos completos.</li>
+        <li>Número del documento de identidad.</li>
+        <li>Números de teléfono (fijo o celular).</li>
+        <li>Correo electrónico.</li>
+        <li>Direcciones de residencia o correspondencia.</li>
+        <li>Placa vinculada al Registro Único Nacional de Tránsito de la motocicleta.</li>
+        <li>Número de chasis único de la motocicleta.</li>
+      </ul>
+      <p>
+        Se informa expresamente que la información vinculada a la motocicleta (placa y chasis), al estar asociada en
+        nuestras bases de datos con el nombre y documento de identidad del titular, adquiere la categoría de dato
+        personal, y por ende, goza de la misma protección legal.
+      </p>
+
+      <h4>SECCIÓN 4. FINALIDAD DEL TRATAMIENTO</h4>
+      <p>
+        Los datos personales proporcionados por el titular serán recolectados y tratados exclusivamente para las
+        siguientes finalidades:
+      </p>
+      <ul>
+        <li>Identificar de manera unívoca al usuario dentro de la plataforma y gestionar la creación y administración de su cuenta.</li>
+        <li>Validar la titularidad, registro y características técnicas de la motocicleta mediante los números de placa y chasis, con el propósito de garantizar la seguridad en las operaciones y la adecuada prestación del servicio.</li>
+        <li>Establecer canales de comunicación efectivos a través del teléfono y correo electrónico para enviar notificaciones sobre el servicio, actualizaciones de la plataforma, y avisos de seguridad.</li>
+        <li>Gestionar la logística y operaciones requeridas en las direcciones suministradas por el usuario.</li>
+        <li>Dar cumplimiento a obligaciones legales, contractuales o requerimientos de autoridades judiciales y administrativas competentes en Colombia.</li>
+      </ul>
+
+      <h4>SECCIÓN 5. DERECHOS DE LOS TITULARES</h4>
+      <p>
+        De conformidad con el Artículo 8 de la Ley 1581 de 2012, el titular de los datos personales tiene derecho a:
+      </p>
+      <ul>
+        <li>Conocer, actualizar y rectificar sus datos personales frente al Responsable del Tratamiento. Este derecho se podrá ejercer frente a datos parciales, inexactos, incompletos, fraccionados o que induzcan a error.</li>
+        <li>Solicitar prueba de la autorización otorgada al Responsable del Tratamiento.</li>
+        <li>Ser informado por el Responsable, previa solicitud, respecto del uso que le ha dado a sus datos personales.</li>
+        <li>Presentar ante la Superintendencia de Industria y Comercio quejas por infracciones a lo dispuesto en la ley colombiana.</li>
+        <li>Revocar la autorización y/o solicitar la supresión del dato cuando en el tratamiento no se respeten los principios, derechos y garantías constitucionales y legales. Esta revocatoria no procederá cuando el titular tenga un deber legal o contractual de permanecer en la base de datos de la aplicación.</li>
+        <li>Acceder en forma gratuita a sus datos personales que hayan sido objeto de Tratamiento.</li>
+      </ul>
+
+      <h4>SECCIÓN 6. PROCEDIMIENTO PARA ATENCIÓN DE CONSULTAS Y RECLAMOS</h4>
+      <p>
+        Los titulares podrán ejercer sus derechos de consulta, actualización, rectificación o supresión a través del
+        correo electrónico designado por el Responsable.
+      </p>
+      <p>
+        <strong>Consultas:</strong> Serán atendidas en un término máximo de diez (10) días hábiles contados a partir de
+        la fecha de recibo. Si no fuere posible atender la consulta en dicho término, se informará al interesado los
+        motivos de la demora y se señalará la fecha en que se atenderá, la cual no superará los cinco (5) días hábiles
+        siguientes al vencimiento del primer término.
+      </p>
+      <p>
+        <strong>Reclamos (Corrección, actualización o supresión):</strong> Se formularán mediante solicitud dirigida al
+        Responsable con la identificación del titular, la descripción de los hechos y la dirección. El término máximo
+        para atender el reclamo será de quince (15) días hábiles. Cuando no fuere posible atender el reclamo en este
+        plazo, se informará al interesado los motivos de la demora y la fecha en que se atenderá, la cual en ningún
+        caso podrá superar los ocho (8) días hábiles siguientes al vencimiento del primer término.
+      </p>
+
+      <h4>SECCIÓN 7. SEGURIDAD DE LA INFORMACIÓN</h4>
+      <p>
+        El Responsable se compromete a adoptar las medidas técnicas, humanas y administrativas necesarias para otorgar
+        seguridad a los registros, evitando su adulteración, pérdida, consulta, uso o acceso no autorizado o
+        fraudulento, de conformidad con lo exigido en la Ley 1581 de 2012. Especial diligencia se aplicará al
+        almacenamiento encriptado de los documentos de identidad y datos de identificación vehicular.
+      </p>
+
+      <h4>SECCIÓN 8. VIGENCIA DE LA POLÍTICA Y DE LAS BASES DE DATOS</h4>
+      <p>
+        La presente política rige a partir de su publicación y aceptación por parte del usuario. Las bases de datos
+        tendrán una vigencia igual al tiempo en que se mantenga y utilice la información para las finalidades descritas,
+        o por el período establecido en disposiciones legales aplicables.
+      </p>
+    </div>
+    <div class="data-policy-modal-footer">
+      <button type="button" class="btn btn-primary" (click)="closeDataTreatmentModal()">Entendido</button>
+    </div>
+  </div>
+</div>
+}

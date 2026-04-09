@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { AppointmentResponseDTO } from '../../models';
+import { AppointmentDetailModal } from '../appointment-detail/appointment-detail';
 
 @Component({
   selector: 'app-admin-agenda',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AppointmentDetailModal],
   templateUrl: './admin-agenda.html',
-  styleUrl: './admin-agenda.css',
+  styleUrls: ['./admin-agenda.css'],
 })
 export class AdminAgenda implements OnInit {
   private readonly appointmentService = inject(AdminAppointmentService);
@@ -19,6 +20,10 @@ export class AdminAgenda implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal('');
   protected readonly success = signal('');
+
+  // Modal
+  protected readonly showModal = signal(false);
+  protected readonly selectedAppointment = signal<AppointmentResponseDTO | null>(null);
 
   // Cancel modal
   protected readonly cancellingId = signal<number | null>(null);
@@ -39,6 +44,20 @@ export class AdminAgenda implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  protected viewDetails(apt: AppointmentResponseDTO): void {
+    this.selectedAppointment.set(apt);
+    this.showModal.set(true);
+  }
+
+  protected onModalClosed(): void {
+    this.showModal.set(false);
+    this.selectedAppointment.set(null);
+  }
+
+  protected onAppointmentUpdated(): void {
+    this.loadAgenda();
   }
 
   protected openCancelModal(id: number): void {

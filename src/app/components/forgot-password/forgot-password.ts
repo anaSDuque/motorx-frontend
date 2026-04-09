@@ -1,36 +1,51 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.html',
-  styleUrl: './forgot-password.css',
+  styleUrls: ['./forgot-password.css'],
 })
 export class ForgotPassword {
   private readonly passwordResetService = inject(PasswordResetService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
 
   protected readonly email = signal('');
   protected readonly loading = signal(false);
-  protected readonly message = signal('');
   protected readonly error = signal('');
+  protected readonly message = signal('');
+  protected readonly emailTouched = signal(false);
 
   protected onSubmit(): void {
+    this.emailTouched.set(true);
+
+    if (!this.email().trim()) {
+      this.error.set('Ingresa tu correo electrónico');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set('');
-    this.message.set('');
 
     this.passwordResetService.requestReset({ email: this.email() }).subscribe({
-      next: (msg) => {
+      next: () => {
         this.loading.set(false);
-        this.message.set('Si el correo existe, se ha enviado un código de recuperación.');
+        // After requesting a reset, navigate to the reset-password screen
+        // so the user can enter the code and a new password.
+        this.loading.set(false);
+        this.message.set('Se envió el correo de restablecimiento. Revisa tu bandeja.');
+        this.router.navigate(['/reset-password'], { queryParams: { email: this.email() } });
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Error al procesar la solicitud');
+        this.error.set(this.notificationService.handleHttpError(err));
       },
     });
   }

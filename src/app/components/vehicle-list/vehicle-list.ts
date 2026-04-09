@@ -8,7 +8,7 @@ import { VehicleResponseDTO, CreateVehicleRequestDTO, UpdateVehicleRequestDTO } 
   standalone: true,
   imports: [FormsModule],
   templateUrl: './vehicle-list.html',
-  styleUrl: './vehicle-list.css',
+  styleUrls: ['./vehicle-list.css'],
 })
 export class VehicleList implements OnInit {
   private readonly vehicleService = inject(UserVehicleService);

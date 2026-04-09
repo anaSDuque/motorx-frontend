@@ -1,5 +1,5 @@
 <div class="mb-4">
-  <h3 class="fw-bold"><i class="bi bi-calendar-plus me-2"></i>Agendar cita</h3>
+  <h3 class="fw-bold"><i class="bi bi-calendar-plus me-2"></i> Cita</h3>
   <p class="text-muted">Sigue los pasos para programar tu visita al taller</p>
 </div>
 
@@ -21,9 +21,7 @@
   </div>
 </div>
 
-@if (error()) {
-  <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}</div>
-}
+<!-- Top-level error alert removed (using contextual alerts near each step instead) -->
 
 <!-- STEP 1 -->
 @if (step() === 1) {
@@ -74,11 +72,14 @@
         <div class="mb-3">
           <label class="form-label">Fecha de la cita</label>
           <input type="date" class="form-control" [min]="minDate"
-            [ngModel]="appointmentDate()" (ngModelChange)="appointmentDate.set($event)" name="date" />
+            [ngModel]="appointmentDate()" (ngModelChange)="onDateChange($event)" name="date" />
+          @if (isSunday(appointmentDate())) {
+            <div class="text-danger small mt-1">Los domingos no están disponibles para agendar citas</div>
+          }
         </div>
 
         @if (selectedVehicleId() && appointmentDate()) {
-          <button class="btn btn-outline-primary me-2" (click)="checkPlateRestriction()" [disabled]="checkingPlate()">
+          <button class="btn btn-outline-primary me-2" (click)="checkPlateRestriction()" [disabled]="checkingPlate() || isSunday(appointmentDate())">
             @if (checkingPlate()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             <i class="bi bi-shield-check me-1"></i>Verificar pico y placa
           </button>
@@ -162,9 +163,13 @@
           <label class="form-label">Kilometraje actual</label>
           <div class="input-group">
             <input type="number" class="form-control" min="0"
-              [ngModel]="currentMileage()" (ngModelChange)="currentMileage.set($event)" name="mileage" />
+              [ngModel]="currentMileage()" (ngModelChange)="currentMileage.set($event)" (blur)="currentMileageTouched.set(true)" name="mileage"
+              [class.is-invalid]="currentMileageTouched() && !currentMileage()" />
             <span class="input-group-text">km</span>
           </div>
+          @if (currentMileageTouched() && !currentMileage()) {
+            <div class="text-danger small mt-1">El kilometraje es obligatorio</div>
+          }
         </div>
       </div>
 
