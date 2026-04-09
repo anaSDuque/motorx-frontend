@@ -10,6 +10,7 @@ export enum AppointmentType {
 
 export enum AppointmentStatus {
   SCHEDULED = 'SCHEDULED',
+  AWAITING_CONFIRMATION = 'AWAITING_CONFIRMATION',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
@@ -20,6 +21,7 @@ export enum AppointmentStatus {
 export enum EmployeePosition {
   RECEPCIONISTA = 'RECEPCIONISTA',
   MECANICO = 'MECANICO',
+  WAREHOUSE_WORKER = 'WAREHOUSE_WORKER',
 }
 
 export enum EmployeeState {
@@ -45,6 +47,7 @@ export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
 
 export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
   [AppointmentStatus.SCHEDULED]: 'Agendada',
+  [AppointmentStatus.AWAITING_CONFIRMATION]: 'En confirmación',
   [AppointmentStatus.IN_PROGRESS]: 'En progreso',
   [AppointmentStatus.COMPLETED]: 'Completada',
   [AppointmentStatus.CANCELLED]: 'Cancelada',
@@ -55,6 +58,7 @@ export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
 export const EMPLOYEE_POSITION_LABELS: Record<EmployeePosition, string> = {
   [EmployeePosition.RECEPCIONISTA]: 'Recepcionista',
   [EmployeePosition.MECANICO]: 'Mecánico',
+  [EmployeePosition.WAREHOUSE_WORKER]: 'Bodega',
 };
 
 export const EMPLOYEE_STATE_LABELS: Record<EmployeeState, string> = {

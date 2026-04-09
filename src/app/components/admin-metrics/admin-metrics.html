@@ -1,0 +1,105 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Métricas del sistema</h3>
+  <button class="btn btn-outline-primary" (click)="loadSummary()">
+    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+  </button>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible fade show">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')"></button>
+  </div>
+}
+
+@if (loading()) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+} @else if (summary(); as s) {
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card h-100 border-0">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Intentos 401</h6>
+          <div class="display-6 fw-bold">{{ s.security.unauthorizedAttempts401 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Intentos 403</h6>
+          <div class="display-6 fw-bold">{{ s.security.forbiddenAttempts403 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Cumplimiento acceso</h6>
+          <div class="display-6 fw-bold">{{ s.security.accessControlCompliancePercent }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-header bg-transparent fw-semibold">Mantenibilidad</div>
+        <div class="card-body">
+          <div class="mb-2">Controladores: <strong>{{ s.maintainability.totalControllers }}</strong></div>
+          <div class="mb-2">Servicios: <strong>{{ s.maintainability.totalServices }}</strong></div>
+          <div class="mb-2">Repositorios: <strong>{{ s.maintainability.totalRepositories }}</strong></div>
+          <div class="mb-2">Errores estandarizados: <strong>{{ s.maintainability.standardizedErrorHandlingEnabled ? 'Sí' : 'No' }}</strong></div>
+          <div>JaCoCo Gate: <strong>{{ s.maintainability.jacocoCoverageGatePercent }}%</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-header bg-transparent fw-semibold">Citas</div>
+        <div class="card-body">
+          <div class="mb-2">Intentos de creación: <strong>{{ s.appointments.totalCreationAttempts }}</strong></div>
+          <div class="mb-2">Citas exitosas: <strong>{{ s.appointments.successfulAppointments }}</strong></div>
+          <div class="mb-2">Rechazadas por reglas: <strong>{{ s.appointments.rejectedByBusinessRules }}</strong></div>
+          <div class="mb-2">Cumplimiento de reglas: <strong>{{ s.appointments.businessRuleCompliancePercent }}%</strong></div>
+          <div>Integridad de datos: <strong>{{ s.appointments.dataIntegrityPercent }}%</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0">
+    <div class="card-header bg-transparent fw-semibold">Performance por endpoint</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Promedio (ms)</th>
+            <th>Total requests</th>
+            <th>Bajo umbral</th>
+            <th>Cumplimiento</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (metric of s.performance; track metric.endpoint) {
+            <tr>
+              <td class="fw-semibold">{{ metric.endpoint }}</td>
+              <td>{{ metric.avgResponseTimeMs }}</td>
+              <td>{{ metric.totalRequests }}</td>
+              <td>{{ metric.requestsUnderThreshold }}</td>
+              <td>{{ metric.compliancePercent }}%</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No hay métricas de performance disponibles.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

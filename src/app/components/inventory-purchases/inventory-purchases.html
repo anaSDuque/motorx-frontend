@@ -1,0 +1,100 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-box-arrow-in-down me-2"></i>Compras de inventario</h3>
+</div>
+
+@if (success()) {
+  <div class="alert alert-success alert-dismissible fade show">
+    {{ success() }}
+    <button type="button" class="btn-close" (click)="success.set('')"></button>
+  </div>
+}
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible fade show">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')"></button>
+  </div>
+}
+
+<div class="card border-0 mb-4">
+  <div class="card-header bg-transparent fw-semibold">Registrar compra</div>
+  <div class="card-body">
+    @for (item of items(); track $index) {
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col-md-5">
+          <label class="form-label">Repuesto</label>
+          <select class="form-select" [ngModel]="item.spareId" (ngModelChange)="updateItem($index, { spareId: $event })" [name]="'spare_' + $index" required>
+            <option [ngValue]="null" disabled>Seleccione un repuesto</option>
+            @for (spare of spares(); track spare.id) {
+              <option [ngValue]="spare.id">{{ spare.spareCode }} - {{ spare.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Cantidad</label>
+          <input type="number" class="form-control" [ngModel]="item.quantity" (ngModelChange)="updateItem($index, { quantity: $event })" [name]="'qty_' + $index" min="1" required />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Precio compra (IVA)</label>
+          <input type="number" class="form-control" [ngModel]="item.purchasePriceWithVat" (ngModelChange)="updateItem($index, { purchasePriceWithVat: $event })" [name]="'price_' + $index" min="0" step="0.01" required />
+        </div>
+        <div class="col-md-2 text-end">
+          <button class="btn btn-outline-danger" type="button" (click)="removeItem($index)" [disabled]="items().length === 1">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="mb-3">
+      <button class="btn btn-sm btn-outline-primary" type="button" (click)="addItem()">
+        <i class="bi bi-plus-lg me-1"></i>Agregar item
+      </button>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Notas</label>
+      <textarea class="form-control" rows="2" [ngModel]="notes()" (ngModelChange)="notes.set($event)" name="notes"></textarea>
+    </div>
+
+    <button class="btn btn-primary" type="button" (click)="createPurchase()" [disabled]="creating()">
+      @if (creating()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Registrar compra
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  <div class="card border-0">
+    <div class="card-header bg-transparent fw-semibold">Histórico de compras</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Items</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (purchase of purchases(); track purchase.id) {
+            <tr>
+              <td class="fw-semibold">#{{ purchase.id }}</td>
+              <td>{{ purchase.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ purchase.total }}</td>
+              <td>{{ purchase.items.length }}</td>
+              <td>{{ purchase.notes ?? '-' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No hay compras registradas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

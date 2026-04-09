@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
@@ -12,6 +13,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 })
 export class Layout {
   protected readonly authService = inject(AuthService);
+  protected readonly themeService = inject(ThemeService);
 
   protected get userName(): string {
     return this.authService.currentUser()?.name ?? this.authService.getStoredUserName() ?? 'Usuario';
@@ -19,6 +21,22 @@ export class Layout {
 
   protected get isAdmin(): boolean {
     return this.authService.getStoredRole() === 'ADMIN';
+  }
+
+  protected get isEmployee(): boolean {
+    return this.authService.getStoredRole() === 'EMPLOYEE';
+  }
+
+  protected get isClient(): boolean {
+    return !this.isAdmin && !this.isEmployee;
+  }
+
+  protected get canAccessStaffModules(): boolean {
+    return this.isAdmin || this.isEmployee;
+  }
+
+  protected toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   protected onLogout(): void {

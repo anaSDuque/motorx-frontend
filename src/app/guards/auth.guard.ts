@@ -35,3 +35,16 @@ export const guestGuard: CanActivateFn = () => {
   router.navigate([role === 'ADMIN' ? '/admin/dashboard' : '/dashboard']);
   return false;
 };
+
+export const staffGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  const role = authService.getStoredRole();
+  if (authService.isLoggedIn() && (role === 'ADMIN' || role === 'EMPLOYEE')) {
+    return true;
+  }
+
+  router.navigate(['/dashboard']);
+  return false;
+};
