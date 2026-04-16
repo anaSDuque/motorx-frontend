@@ -34,27 +34,29 @@
         </ul>
       }
 
-      @if (canAccessStaffModules) {
+      @if (isEmployee) {
         <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/spares" routerLinkActive="active">
-              <i class="bi bi-box-seam me-1"></i>Repuestos
+          <li class="nav-item dropdown" routerLinkActive="active">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+              <i class="bi bi-box-seam me-1"></i>Inventario
             </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/inventory/purchases" routerLinkActive="active">
-              <i class="bi bi-box-arrow-in-down me-1"></i>Compras
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/inventory/sales" routerLinkActive="active">
-              <i class="bi bi-box-arrow-up-right me-1"></i>Ventas
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/reception" routerLinkActive="active">
-              <i class="bi bi-clipboard-check me-1"></i>Recepción
-            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" routerLink="/spares" routerLinkActive="active">
+                  <i class="bi bi-box-seam me-2"></i>Repuestos
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" routerLink="/inventory/purchases" routerLinkActive="active">
+                  <i class="bi bi-box-arrow-in-down me-2"></i>Compras
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" routerLink="/inventory/sales" routerLinkActive="active">
+                  <i class="bi bi-box-arrow-up-right me-2"></i>Ventas
+                </a>
+              </li>
+            </ul>
           </li>
         </ul>
       }
@@ -67,72 +69,86 @@
             <i class="bi bi-speedometer2 me-1"></i>{{ 'nav.adminDashboard' | translate }}
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/agenda" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <i class="bi bi-list-task me-1"></i>{{ 'nav.agenda' | translate }}
+        <li class="nav-item dropdown" routerLinkActive="active">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-box-seam me-1"></i>Inventario
           </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" routerLink="/spares" routerLinkActive="active">
+                <i class="bi bi-box-seam me-2"></i>Repuestos
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/inventory/purchases" routerLinkActive="active">
+                <i class="bi bi-box-arrow-in-down me-2"></i>Compras
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/inventory/sales" routerLinkActive="active">
+                <i class="bi bi-box-arrow-up-right me-2"></i>Ventas
+              </a>
+            </li>
+          </ul>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/calendar" routerLinkActive="active">
-            <i class="bi bi-calendar3 me-1"></i>{{ 'nav.calendar' | translate }}
+        <li class="nav-item dropdown" routerLinkActive="active">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-calendar-check me-1"></i>Citas
           </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" routerLink="/reception" routerLinkActive="active">
+                <i class="bi bi-clipboard-check me-2"></i>Recepción
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/agenda" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="bi bi-list-task me-2"></i>{{ 'nav.agenda' | translate }}
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/calendar" routerLinkActive="active">
+                <i class="bi bi-calendar3 me-2"></i>{{ 'nav.calendar' | translate }}
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/unplanned" routerLinkActive="active">
+                <i class="bi bi-exclamation-triangle me-2"></i>Imprevista
+              </a>
+            </li>
+          </ul>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/employees" routerLinkActive="active">
-            <i class="bi bi-people me-1"></i>{{ 'nav.employees' | translate }}
+        <li class="nav-item dropdown" routerLinkActive="active">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-cpu me-1"></i>Sistema
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
-            <i class="bi bi-person-lines-fill me-1"></i>{{ 'nav.users' | translate }}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin/vehicles" routerLinkActive="active">
-            <i class="bi bi-bicycle me-1"></i>{{ 'nav.vehicles' | translate }}
-          </a>
-        </li>
-      </ul>
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-              <i class="bi bi-speedometer2 me-1"></i>Agenda
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/calendar" routerLinkActive="active">
-              <i class="bi bi-calendar3 me-1"></i>Calendario
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/employees" routerLinkActive="active">
-              <i class="bi bi-people me-1"></i>Empleados
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
-              <i class="bi bi-person-lines-fill me-1"></i>Usuarios
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/vehicles" routerLinkActive="active">
-              <i class="bi bi-bicycle me-1"></i>Vehículos
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/unplanned" routerLinkActive="active">
-              <i class="bi bi-exclamation-triangle me-1"></i>Imprevista
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/metrics" routerLinkActive="active">
-              <i class="bi bi-graph-up-arrow me-1"></i>Métricas
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/logs" routerLinkActive="active">
-              <i class="bi bi-journal-text me-1"></i>Logs
-            </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" routerLink="/admin/employees" routerLinkActive="active">
+                <i class="bi bi-people me-2"></i>{{ 'nav.employees' | translate }}
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/users" routerLinkActive="active">
+                <i class="bi bi-person-lines-fill me-2"></i>{{ 'nav.users' | translate }}
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/vehicles" routerLinkActive="active">
+                <i class="bi bi-bicycle me-2"></i>{{ 'nav.vehicles' | translate }}
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/metrics" routerLinkActive="active">
+                <i class="bi bi-graph-up-arrow me-2"></i>Métricas
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/admin/logs" routerLinkActive="active">
+                <i class="bi bi-journal-text me-2"></i>Logs
+              </a>
+            </li>
+          </ul>
           </li>
         </ul>
       }
