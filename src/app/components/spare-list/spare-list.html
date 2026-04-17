@@ -5,6 +5,13 @@
   </button>
 </div>
 
+@if (onlyBelowThreshold()) {
+  <div class="alert alert-warning d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-triangle me-2"></i>Mostrando repuestos bajo umbral de stock.</span>
+    <a class="btn btn-sm btn-outline-dark" routerLink="/spares">Ver todos</a>
+  </div>
+}
+
 @if (success()) {
   <div class="alert alert-success alert-dismissible fade show">
     {{ success() }}
@@ -28,41 +35,60 @@
       @if (formError()) {
         <div class="alert alert-danger py-2">{{ formError() }}</div>
       }
-      <form (ngSubmit)="onSubmit()">
+      <form [formGroup]="spareForm" (ngSubmit)="onSubmit()">
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label">SAV Code</label>
-            <input class="form-control" [ngModel]="savCode()" (ngModelChange)="savCode.set($event)" name="savCode" required />
+            <input class="form-control" formControlName="savCode" />
+            @if (hasError('savCode', 'required')) {
+              <small class="text-danger">El SAV Code es obligatorio.</small>
+            }
           </div>
           <div class="col-md-4">
             <label class="form-label">Código repuesto</label>
-            <input class="form-control" [ngModel]="spareCode()" (ngModelChange)="spareCode.set($event)" name="spareCode" required />
+            <input class="form-control" formControlName="spareCode" />
+            @if (hasError('spareCode', 'required')) {
+              <small class="text-danger">El código del repuesto es obligatorio.</small>
+            }
           </div>
           <div class="col-md-4">
             <label class="form-label">Ubicación bodega</label>
-            <input class="form-control" [ngModel]="warehouseLocation()" (ngModelChange)="warehouseLocation.set($event)" name="warehouseLocation" placeholder="00-00-00-00" required />
+            <input class="form-control" formControlName="warehouseLocation" placeholder="00-00-00-00" />
+            @if (hasError('warehouseLocation', 'required')) {
+              <small class="text-danger">La ubicación es obligatoria.</small>
+            }
+            @if (hasError('warehouseLocation', 'pattern')) {
+              <small class="text-danger">Formato inválido. Usa 00-00-00-00.</small>
+            }
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Nombre</label>
-            <input class="form-control" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" required />
+            <input class="form-control" formControlName="name" />
+            @if (hasError('name', 'required')) {
+              <small class="text-danger">El nombre es obligatorio.</small>
+            }
           </div>
           <div class="col-md-6">
             <label class="form-label">Descripción</label>
-            <input class="form-control" [ngModel]="description()" (ngModelChange)="description.set($event)" name="description" />
+            <input class="form-control" formControlName="description" />
           </div>
 
           <div class="col-md-3">
             <label class="form-label">Cantidad</label>
-            <input type="number" class="form-control" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="quantity" min="0" required />
+            <input type="number" class="form-control" formControlName="quantity" min="0" />
           </div>
           <div class="col-md-3">
             <label class="form-label">Precio compra (IVA)</label>
-            <input type="number" class="form-control" [ngModel]="purchasePriceWithVat()" (ngModelChange)="purchasePriceWithVat.set($event)" name="purchasePriceWithVat" min="0" step="0.01" required />
+            <input type="number" class="form-control" formControlName="purchasePriceWithVat" min="0" step="0.01" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Umbral mínimo</label>
+            <input type="number" class="form-control" formControlName="stockThreshold" min="0" />
           </div>
           <div class="col-md-3 d-flex align-items-end">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" [ngModel]="isOil()" (ngModelChange)="isOil.set($event)" name="isOil" id="isOil" />
+              <input class="form-check-input" type="checkbox" formControlName="isOil" id="isOil" />
               <label class="form-check-label" for="isOil">¿Es aceite?</label>
             </div>
           </div>
@@ -93,6 +119,7 @@
           <th>Precio compra</th>
           <th>Precio venta</th>
           <th>Ubicación</th>
+            <th>Umbral</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -109,12 +136,23 @@
             <td>{{ s.salePrice }}</td>
             <td>{{ s.warehouseLocation }}</td>
             <td>
+              {{ s.stockThreshold }}
+              @if (s.quantity < s.stockThreshold) {
+                <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Stock bajo"></i>
+              }
+            </td>
+            <td>
               <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditForm(s)" title="Editar">
                 <i class="bi bi-pencil"></i>
               </button>
               <button class="btn btn-sm btn-outline-secondary me-1" (click)="updatePurchasePrice(s)" title="Actualizar precio compra">
                 <i class="bi bi-currency-dollar"></i>
               </button>
+              @if (isAdmin && s.quantity < s.stockThreshold) {
+                <button class="btn btn-sm btn-outline-warning me-1" (click)="notifyRestock(s)" title="Notificar surtido">
+                  <i class="bi bi-bell"></i>
+                </button>
+              }
               @if (isAdmin) {
                 <button class="btn btn-sm btn-outline-danger" (click)="deleteSpare(s.id)" title="Eliminar">
                   <i class="bi bi-trash"></i>
@@ -124,7 +162,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">No hay repuestos registrados.</td>
+            <td colspan="8" class="text-center text-muted py-4">No hay repuestos registrados.</td>
           </tr>
         }
       </tbody>

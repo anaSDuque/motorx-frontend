@@ -23,14 +23,19 @@
         <p class="text-muted small">
           Envía el código de 4 dígitos al cliente y cambia la cita a estado <strong>AWAITING_CONFIRMATION</strong>.
         </p>
-        <div class="mb-3">
-          <label class="form-label">ID de cita</label>
-          <input type="number" class="form-control" [ngModel]="appointmentId()" (ngModelChange)="appointmentId.set($event)" name="appointmentId" min="1" required />
-        </div>
-        <button class="btn btn-primary" (click)="initiateReception()" [disabled]="loadingInitiate()">
-          @if (loadingInitiate()) { <span class="spinner-border spinner-border-sm me-1"></span> }
-          Iniciar recepción
-        </button>
+        <form [formGroup]="initiateForm" (ngSubmit)="initiateReception()">
+          <div class="mb-3">
+            <label class="form-label">ID de cita</label>
+            <input type="number" class="form-control" formControlName="appointmentId" min="1" />
+            @if (hasInitiateError('appointmentId', 'required') || hasInitiateError('appointmentId', 'min')) {
+              <small class="text-danger">Ingresa un ID mayor a 0.</small>
+            }
+          </div>
+          <button class="btn btn-primary" type="submit" [disabled]="loadingInitiate()">
+            @if (loadingInitiate()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Iniciar recepción
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -42,18 +47,26 @@
         <p class="text-muted small">
           Valida placa + código para cambiar la cita a estado <strong>IN_PROGRESS</strong>.
         </p>
-        <div class="mb-3">
-          <label class="form-label">Placa</label>
-          <input class="form-control text-uppercase" [ngModel]="licensePlate()" (ngModelChange)="licensePlate.set($event?.toUpperCase())" name="licensePlate" placeholder="ABC12D" required />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Código de verificación</label>
-          <input class="form-control" [ngModel]="verificationCode()" (ngModelChange)="verificationCode.set($event)" name="verificationCode" maxlength="4" required />
-        </div>
-        <button class="btn btn-primary" (click)="confirmReception()" [disabled]="loadingConfirm()">
-          @if (loadingConfirm()) { <span class="spinner-border spinner-border-sm me-1"></span> }
-          Confirmar recepción
-        </button>
+        <form [formGroup]="confirmForm" (ngSubmit)="confirmReception()">
+          <div class="mb-3">
+            <label class="form-label">Placa</label>
+            <input class="form-control text-uppercase" formControlName="licensePlate" placeholder="ABC12D" />
+            @if (hasConfirmError('licensePlate', 'required') || hasConfirmError('licensePlate', 'pattern')) {
+              <small class="text-danger">Ingresa una placa válida (5 a 8 caracteres alfanuméricos).</small>
+            }
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Código de verificación</label>
+            <input class="form-control" formControlName="verificationCode" maxlength="4" />
+            @if (hasConfirmError('verificationCode', 'required') || hasConfirmError('verificationCode', 'pattern')) {
+              <small class="text-danger">Ingresa un código numérico de 4 dígitos.</small>
+            }
+          </div>
+          <button class="btn btn-primary" type="submit" [disabled]="loadingConfirm()">
+            @if (loadingConfirm()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            Confirmar recepción
+          </button>
+        </form>
       </div>
     </div>
   </div>

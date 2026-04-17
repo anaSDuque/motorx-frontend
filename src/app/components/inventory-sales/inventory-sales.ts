@@ -1,28 +1,30 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { InventoryTransactionService } from '../../services/inventory-transaction.service';
 import { SpareService } from '../../services/spare.service';
 import {
   SaleTransactionResponseDTO,
   DailySalesSummaryDTO,
   CreateSaleTransactionDTO,
-} from '../../models/inventory.model';
-import { SpareResponseDTO } from '../../models/spare.model';
-
-interface SaleFormItem {
-  spareId: number | null;
-  quantity: number;
-}
+} from '../../models';
+import { SpareResponseDTO } from '../../models';
 
 @Component({
   selector: 'app-inventory-sales',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './inventory-sales.html',
   styleUrl: './inventory-sales.css',
 })
 export class InventorySales implements OnInit {
+  private readonly fb = inject(FormBuilder);
   private readonly inventoryService = inject(InventoryTransactionService);
   private readonly spareService = inject(SpareService);
 
@@ -35,9 +37,12 @@ export class InventorySales implements OnInit {
   protected readonly spares = signal<SpareResponseDTO[]>([]);
 
   protected readonly creating = signal(false);
-  protected readonly appointmentId = signal<number | null>(null);
-  protected readonly notes = signal('');
-  protected readonly items = signal<SaleFormItem[]>([{ spareId: null, quantity: 1 }]);
+
+  protected readonly saleForm = this.fb.group({
+    appointmentId: [null as number | null],
+    notes: [''],
+    items: this.fb.array([this.createItemGroup()]),
+  });
 
   ngOnInit(): void {
     this.loadData();
@@ -68,34 +73,44 @@ export class InventorySales implements OnInit {
     });
   }
 
+  protected get items(): FormArray {
+    return this.saleForm.controls.items as FormArray;
+  }
+
+  protected getItemGroup(index: number): FormGroup {
+    return this.items.at(index) as FormGroup;
+  }
+
   protected addItem(): void {
-    this.items.update((value) => [...value, { spareId: null, quantity: 1 }]);
+    this.items.push(this.createItemGroup());
   }
 
   protected removeItem(index: number): void {
-    this.items.update((value) => value.filter((_, i) => i !== index));
-  }
-
-  protected updateItem(index: number, patch: Partial<SaleFormItem>): void {
-    this.items.update((value) =>
-      value.map((item, i) => (i === index ? { ...item, ...patch } : item))
-    );
+    if (this.items.length === 1) return;
+    this.items.removeAt(index);
   }
 
   protected createSale(): void {
-    const normalizedItems = this.items().filter((item) => item.spareId && item.quantity > 0);
+    this.saleForm.markAllAsTouched();
+    if (this.saleForm.invalid || this.items.length === 0) {
+      this.error.set('Revisa los campos del formulario antes de registrar la venta.');
+      return;
+    }
 
-    if (normalizedItems.length === 0) {
-      this.error.set('Agrega al menos un item válido');
+    const raw = this.saleForm.getRawValue();
+    const appointmentId = raw.appointmentId;
+
+    if (appointmentId !== null && appointmentId !== undefined && Number(appointmentId) < 1) {
+      this.error.set('El ID de cita debe ser mayor a cero.');
       return;
     }
 
     const dto: CreateSaleTransactionDTO = {
-      appointmentId: this.appointmentId(),
-      notes: this.notes() || undefined,
-      items: normalizedItems.map((item) => ({
-        spareId: item.spareId!,
-        quantity: item.quantity,
+      appointmentId: appointmentId ? Number(appointmentId) : null,
+      notes: raw.notes?.trim() || undefined,
+      items: raw.items.map((item) => ({
+        spareId: Number(item["spareId"]),
+        quantity: item["quantity"],
       })),
     };
 
@@ -106,15 +121,27 @@ export class InventorySales implements OnInit {
       next: () => {
         this.creating.set(false);
         this.success.set('Venta registrada exitosamente');
-        this.appointmentId.set(null);
-        this.notes.set('');
-        this.items.set([{ spareId: null, quantity: 1 }]);
+        this.saleForm.reset({ appointmentId: null, notes: '' });
+        this.items.clear();
+        this.items.push(this.createItemGroup());
         this.loadData();
       },
       error: (err) => {
         this.creating.set(false);
         this.error.set(err.error?.message ?? 'Error al registrar venta');
       },
+    });
+  }
+
+  protected hasError(index: number, controlName: 'spareId' | 'quantity', errorName: string): boolean {
+    const control = this.getItemGroup(index).get(controlName);
+    return !!control && control.touched && control.hasError(errorName);
+  }
+
+  private createItemGroup(): FormGroup {
+    return this.fb.group({
+      spareId: [null, [Validators.required]],
+      quantity: [1, [Validators.required, Validators.min(1)]],
     });
   }
 }

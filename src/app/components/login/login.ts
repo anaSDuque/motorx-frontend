@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { Role } from '../../models';
+import { EmployeePosition, Role } from '../../models';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
 import { MathCaptcha } from '../math-captcha/math-captcha';
@@ -16,7 +16,7 @@ import { AboutUs } from '../about-us/about-us';
   styleUrls: ['./login.css'],
 })
 export class Login {
-  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; 
+  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -167,6 +167,13 @@ export class Login {
   private navigateByRole(role: Role | string): void {
     if (role === Role.ADMIN) {
       this.router.navigate(['/admin/dashboard']);
+    } else if (
+      role === Role.EMPLOYEE &&
+      this.authService.getStoredEmployeePosition() === EmployeePosition.WAREHOUSE_WORKER
+    ) {
+      this.router.navigate(['/warehouse/home']);
+    } else if (role === Role.EMPLOYEE) {
+      this.router.navigate(['/reception']);
     } else {
       this.router.navigate(['/dashboard']);
     }

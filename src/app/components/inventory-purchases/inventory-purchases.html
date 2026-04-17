@@ -18,48 +18,61 @@
 <div class="card border-0 mb-4">
   <div class="card-header bg-transparent fw-semibold">Registrar compra</div>
   <div class="card-body">
-    @for (item of items(); track $index) {
-      <div class="row g-2 align-items-end mb-2">
-        <div class="col-md-5">
-          <label class="form-label">Repuesto</label>
-          <select class="form-select" [ngModel]="item.spareId" (ngModelChange)="updateItem($index, { spareId: $event })" [name]="'spare_' + $index" required>
-            <option [ngValue]="null" disabled>Seleccione un repuesto</option>
-            @for (spare of spares(); track spare.id) {
-              <option [ngValue]="spare.id">{{ spare.spareCode }} - {{ spare.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Cantidad</label>
-          <input type="number" class="form-control" [ngModel]="item.quantity" (ngModelChange)="updateItem($index, { quantity: $event })" [name]="'qty_' + $index" min="1" required />
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Precio compra (IVA)</label>
-          <input type="number" class="form-control" [ngModel]="item.purchasePriceWithVat" (ngModelChange)="updateItem($index, { purchasePriceWithVat: $event })" [name]="'price_' + $index" min="0" step="0.01" required />
-        </div>
-        <div class="col-md-2 text-end">
-          <button class="btn btn-outline-danger" type="button" (click)="removeItem($index)" [disabled]="items().length === 1">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
+    <form [formGroup]="purchaseForm" (ngSubmit)="createPurchase()">
+      <div formArrayName="items">
+        @for (_item of items.controls; track $index) {
+          <div class="row g-2 align-items-end mb-2" [formGroupName]="$index">
+            <div class="col-md-5">
+              <label class="form-label">Repuesto</label>
+              <select class="form-select" formControlName="spareId">
+                <option [ngValue]="null" disabled>Seleccione un repuesto</option>
+                @for (spare of spares(); track spare.id) {
+                  <option [ngValue]="spare.id">{{ spare.spareCode }} - {{ spare.name }}</option>
+                }
+              </select>
+              @if (hasError($index, 'spareId', 'required')) {
+                <small class="text-danger">Selecciona un repuesto.</small>
+              }
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Cantidad</label>
+              <input type="number" class="form-control" formControlName="quantity" min="1" />
+              @if (hasError($index, 'quantity', 'required') || hasError($index, 'quantity', 'min')) {
+                <small class="text-danger">La cantidad debe ser mayor o igual a 1.</small>
+              }
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Precio compra (IVA)</label>
+              <input type="number" class="form-control" formControlName="purchasePriceWithVat" min="0" step="0.01" />
+              @if (hasError($index, 'purchasePriceWithVat', 'required') || hasError($index, 'purchasePriceWithVat', 'min')) {
+                <small class="text-danger">El precio no puede ser negativo.</small>
+              }
+            </div>
+            <div class="col-md-2 text-end">
+              <button class="btn btn-outline-danger" type="button" (click)="removeItem($index)" [disabled]="items.length === 1">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        }
       </div>
-    }
 
-    <div class="mb-3">
-      <button class="btn btn-sm btn-outline-primary" type="button" (click)="addItem()">
-        <i class="bi bi-plus-lg me-1"></i>Agregar item
+      <div class="mb-3">
+        <button class="btn btn-sm btn-outline-primary" type="button" (click)="addItem()">
+          <i class="bi bi-plus-lg me-1"></i>Agregar item
+        </button>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Notas</label>
+        <textarea class="form-control" rows="2" formControlName="notes"></textarea>
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="creating()">
+        @if (creating()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+        Registrar compra
       </button>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Notas</label>
-      <textarea class="form-control" rows="2" [ngModel]="notes()" (ngModelChange)="notes.set($event)" name="notes"></textarea>
-    </div>
-
-    <button class="btn btn-primary" type="button" (click)="createPurchase()" [disabled]="creating()">
-      @if (creating()) { <span class="spinner-border spinner-border-sm me-1"></span> }
-      Registrar compra
-    </button>
+    </form>
   </div>
 </div>
 

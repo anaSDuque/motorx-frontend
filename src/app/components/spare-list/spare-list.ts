@@ -1,24 +1,28 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {ActivatedRoute, RouterLink} from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SpareService } from '../../services/spare.service';
 import { AuthService } from '../../services/auth.service';
 import {
   CreateSpareDTO,
   UpdateSpareDTO,
   SpareResponseDTO,
+  EmployeePosition,
   Role,
 } from '../../models';
 
 @Component({
   selector: 'app-spare-list',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './spare-list.html',
   styleUrl: './spare-list.css',
 })
 export class SpareList implements OnInit {
+  private readonly fb = inject(FormBuilder);
   private readonly spareService = inject(SpareService);
   private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly spares = signal<SpareResponseDTO[]>([]);
   protected readonly loading = signal(true);
@@ -29,27 +33,42 @@ export class SpareList implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly formLoading = signal(false);
   protected readonly formError = signal('');
+  protected readonly onlyBelowThreshold = signal(false);
 
-  protected readonly savCode = signal('');
-  protected readonly spareCode = signal('');
-  protected readonly name = signal('');
-  protected readonly description = signal('');
-  protected readonly quantity = signal<number>(0);
-  protected readonly purchasePriceWithVat = signal<number>(0);
-  protected readonly isOil = signal(false);
-  protected readonly warehouseLocation = signal('00-00-00-00');
+  protected readonly spareForm = this.fb.nonNullable.group({
+    savCode: ['', [Validators.required, Validators.maxLength(100)]],
+    spareCode: ['', [Validators.required, Validators.maxLength(100)]],
+    name: ['', [Validators.required, Validators.maxLength(150)]],
+    description: ['', [Validators.maxLength(500)]],
+    quantity: [0, [Validators.required, Validators.min(0)]],
+    purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
+    isOil: [false],
+    warehouseLocation: ['', [Validators.required, Validators.pattern(/^\d{2}-\d{2}-\d{2}-\d{2}$/)]],
+    stockThreshold: [0, [Validators.required, Validators.min(0)]],
+  });
 
   ngOnInit(): void {
-    this.loadSpares();
+    this.route.queryParamMap.subscribe((params) => {
+      this.onlyBelowThreshold.set(params.get('belowThreshold') === 'true');
+      this.loadSpares();
+    });
   }
 
   protected get isAdmin(): boolean {
     return this.authService.getStoredRole() === Role.ADMIN;
   }
 
+  protected get isWarehouseWorker(): boolean {
+    return this.authService.getStoredEmployeePosition() === EmployeePosition.WAREHOUSE_WORKER;
+  }
+
   protected loadSpares(): void {
     this.loading.set(true);
-    this.spareService.getSpares().subscribe({
+    const request$ = this.onlyBelowThreshold()
+      ? this.spareService.getSparesBelowThreshold()
+      : this.spareService.getSpares();
+
+    request$.subscribe({
       next: (data) => {
         this.spares.set(data);
         this.loading.set(false);
@@ -64,19 +83,23 @@ export class SpareList implements OnInit {
   protected openCreateForm(): void {
     this.resetForm();
     this.editingId.set(null);
+    this.spareForm.controls.warehouseLocation.setValue('00-00-00-00');
     this.showForm.set(true);
   }
 
   protected openEditForm(spare: SpareResponseDTO): void {
     this.editingId.set(spare.id);
-    this.savCode.set(spare.savCode);
-    this.spareCode.set(spare.spareCode);
-    this.name.set(spare.name);
-    this.description.set(spare.description ?? '');
-    this.quantity.set(spare.quantity);
-    this.purchasePriceWithVat.set(spare.purchasePriceWithVat);
-    this.isOil.set(spare.isOil);
-    this.warehouseLocation.set(spare.warehouseLocation);
+    this.spareForm.patchValue({
+      savCode: spare.savCode,
+      spareCode: spare.spareCode,
+      name: spare.name,
+      description: spare.description ?? '',
+      quantity: spare.quantity,
+      purchasePriceWithVat: spare.purchasePriceWithVat,
+      isOil: spare.isOil,
+      warehouseLocation: spare.warehouseLocation,
+      stockThreshold: spare.stockThreshold,
+    });
     this.formError.set('');
     this.showForm.set(true);
   }
@@ -87,19 +110,44 @@ export class SpareList implements OnInit {
   }
 
   protected onSubmit(): void {
+    this.spareForm.markAllAsTouched();
+    if (this.spareForm.invalid) {
+      this.formError.set('Completa correctamente los campos requeridos.');
+      return;
+    }
+
+    const raw = this.spareForm.getRawValue();
+    const normalized = {
+      savCode: raw.savCode.trim(),
+      spareCode: raw.spareCode.trim(),
+      name: raw.name.trim(),
+      description: raw.description.trim(),
+      quantity: raw.quantity,
+      purchasePriceWithVat: raw.purchasePriceWithVat,
+      isOil: raw.isOil,
+      warehouseLocation: raw.warehouseLocation.trim(),
+      stockThreshold: raw.stockThreshold,
+    };
+
+    if (!normalized.savCode || !normalized.spareCode || !normalized.name || !normalized.warehouseLocation) {
+      this.formError.set('No se permiten campos en blanco.');
+      return;
+    }
+
     this.formLoading.set(true);
     this.formError.set('');
 
     if (this.editingId()) {
       const dto: UpdateSpareDTO = {
-        savCode: this.savCode(),
-        spareCode: this.spareCode(),
-        name: this.name(),
-        description: this.description() || undefined,
-        quantity: this.quantity(),
-        purchasePriceWithVat: this.purchasePriceWithVat(),
-        isOil: this.isOil(),
-        warehouseLocation: this.warehouseLocation(),
+        savCode: normalized.savCode,
+        spareCode: normalized.spareCode,
+        name: normalized.name,
+        description: normalized.description || undefined,
+        quantity: normalized.quantity,
+        purchasePriceWithVat: normalized.purchasePriceWithVat,
+        isOil: normalized.isOil,
+        warehouseLocation: normalized.warehouseLocation,
+        stockThreshold: normalized.stockThreshold,
       };
 
       this.spareService.updateSpare(this.editingId()!, dto).subscribe({
@@ -118,14 +166,15 @@ export class SpareList implements OnInit {
     }
 
     const dto: CreateSpareDTO = {
-      savCode: this.savCode(),
-      spareCode: this.spareCode(),
-      name: this.name(),
-      description: this.description() || undefined,
-      quantity: this.quantity(),
-      purchasePriceWithVat: this.purchasePriceWithVat(),
-      isOil: this.isOil(),
-      warehouseLocation: this.warehouseLocation(),
+      savCode: normalized.savCode,
+      spareCode: normalized.spareCode,
+      name: normalized.name,
+      description: normalized.description || undefined,
+      quantity: normalized.quantity,
+      purchasePriceWithVat: normalized.purchasePriceWithVat,
+      isOil: normalized.isOil,
+      warehouseLocation: normalized.warehouseLocation,
+      stockThreshold: normalized.stockThreshold,
     };
 
     this.spareService.createSpare(dto).subscribe({
@@ -183,15 +232,32 @@ export class SpareList implements OnInit {
     });
   }
 
+  protected notifyRestock(spare: SpareResponseDTO): void {
+    if (!this.isAdmin) return;
+
+    this.spareService.notifyRestock(spare.id).subscribe({
+      next: (res) => this.success.set(res.message || 'Notificación de surtido enviada'),
+      error: (err) => this.error.set(err.error?.message ?? 'Error al notificar surtido'),
+    });
+  }
+
+  protected hasError(controlName: keyof typeof this.spareForm.controls, errorName: string): boolean {
+    const control = this.spareForm.controls[controlName];
+    return control.touched && control.hasError(errorName);
+  }
+
   private resetForm(): void {
-    this.savCode.set('');
-    this.spareCode.set('');
-    this.name.set('');
-    this.description.set('');
-    this.quantity.set(0);
-    this.purchasePriceWithVat.set(0);
-    this.isOil.set(false);
-    this.warehouseLocation.set('00-00-00-00');
+    this.spareForm.reset({
+      savCode: '',
+      spareCode: '',
+      name: '',
+      description: '',
+      quantity: 0,
+      purchasePriceWithVat: 0,
+      isOil: false,
+      warehouseLocation: '00-00-00-00',
+      stockThreshold: 0,
+    });
     this.formError.set('');
   }
 }

@@ -11,6 +11,7 @@ import {
   AuthResponseDTO,
   UserDTO,
   Role,
+  EmployeePosition,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -75,11 +76,18 @@ export class AuthService {
 
   handleAuthResponse(res: AuthResponseDTO): void {
     this._token.set(res.token);
+    const employeePosition = this.extractEmployeePositionFromToken(res.token);
+
     if (this.isBrowser) {
       localStorage.setItem('motorx_token', res.token);
       localStorage.setItem('motorx_role', res.role);
       localStorage.setItem('motorx_user_name', res.name);
       localStorage.setItem('motorx_user_id', String(res.userId));
+      if (employeePosition) {
+        localStorage.setItem('motorx_employee_position', employeePosition);
+      } else {
+        localStorage.removeItem('motorx_employee_position');
+      }
     }
   }
 
@@ -90,6 +98,14 @@ export class AuthService {
   getStoredRole(): Role | null {
     if (!this.isBrowser) return null;
     return (localStorage.getItem('motorx_role') as Role) ?? null;
+  }
+
+  getStoredEmployeePosition(): EmployeePosition | null {
+    if (!this.isBrowser) return null;
+    const raw = localStorage.getItem('motorx_employee_position');
+    if (!raw) return null;
+    const values = Object.values(EmployeePosition) as string[];
+    return values.includes(raw) ? (raw as EmployeePosition) : null;
   }
 
   getStoredUserName(): string | null {
@@ -105,7 +121,27 @@ export class AuthService {
       localStorage.removeItem('motorx_role');
       localStorage.removeItem('motorx_user_name');
       localStorage.removeItem('motorx_user_id');
+      localStorage.removeItem('motorx_employee_position');
     }
     this.router.navigate(['/login']);
+  }
+
+  private extractEmployeePositionFromToken(token: string): EmployeePosition | null {
+    if (!this.isBrowser) return null;
+
+    try {
+      const payloadSegment = token.split('.')[1];
+      if (!payloadSegment) return null;
+      const payloadJson = atob(payloadSegment.replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadJson) as Record<string, unknown>;
+      const candidate =
+        payload['employeePosition'] ?? payload['position'] ?? payload['employee_position'];
+      const values = Object.values(EmployeePosition) as string[];
+      return typeof candidate === 'string' && values.includes(candidate)
+        ? (candidate as EmployeePosition)
+        : null;
+    } catch {
+      return null;
+    }
   }
 }
