@@ -1,21 +1,41 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { EmployeePosition } from '../models';
+import { Role } from '../models';
 
-function isEmployeeWithPositionOrFallback(
-  authService: AuthService,
-  allowedPositions: EmployeePosition[]
-): boolean {
-  const role = authService.getStoredRole();
-  if (role === 'ADMIN') return true;
-  if (role !== 'EMPLOYEE') return false;
+function isStaffRole(role: Role | null): boolean {
+  return (
+    role === Role.RECEPTIONIST ||
+    role === Role.WARE_HOUSE_WORKER ||
+    role === Role.TECHNICIAN ||
+    role === Role.EMPLOYEE
+  );
+}
 
-  const position = authService.getStoredEmployeePosition();
-  // Compatibilidad: si el token aún no expone posición, se mantiene acceso por rol EMPLOYEE.
-  if (!position) return true;
+function isWarehouseRole(role: Role | null): boolean {
+  return role === Role.WARE_HOUSE_WORKER;
+}
 
-  return allowedPositions.includes(position);
+function isReceptionRole(role: Role | null): boolean {
+  return role === Role.RECEPTIONIST || role === Role.EMPLOYEE;
+}
+
+function redirectToRoleHome(router: Router, role: Role | null): void {
+  if (role === Role.ADMIN) {
+    router.navigate(['/admin/dashboard']);
+    return;
+  }
+
+  if (isWarehouseRole(role)) {
+    router.navigate(['/warehouse/home']);
+    return;
+  }
+
+  if (isReceptionRole(role)) {
+    router.navigate(['/reception']);
+    return;
+  }
+  router.navigate(['/dashboard']);
 }
 
 export const authGuard: CanActivateFn = () => {
@@ -33,7 +53,7 @@ export const adminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isLoggedIn() && authService.getStoredRole() === 'ADMIN') {
+  if (authService.isLoggedIn() && authService.getStoredRole() === Role.ADMIN) {
     return true;
   }
   router.navigate(['/login']);
@@ -47,17 +67,9 @@ export const guestGuard: CanActivateFn = () => {
   if (!authService.isLoggedIn()) {
     return true;
   }
+
   const role = authService.getStoredRole();
-  const position = authService.getStoredEmployeePosition();
-  if (role === 'ADMIN') {
-    router.navigate(['/admin/dashboard']);
-  } else if (role === 'EMPLOYEE' && position === EmployeePosition.WAREHOUSE_WORKER) {
-    router.navigate(['/warehouse/home']);
-  } else if (role === 'EMPLOYEE') {
-    router.navigate(['/reception']);
-  } else {
-    router.navigate(['/dashboard']);
-  }
+  redirectToRoleHome(router, role);
   return false;
 };
 
@@ -66,7 +78,7 @@ export const staffGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   const role = authService.getStoredRole();
-  if (authService.isLoggedIn() && (role === 'ADMIN' || role === 'EMPLOYEE')) {
+  if (authService.isLoggedIn() && (role === Role.ADMIN || isStaffRole(role))) {
     return true;
   }
 
@@ -77,11 +89,9 @@ export const staffGuard: CanActivateFn = () => {
 export const warehouseGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const role = authService.getStoredRole();
 
-  if (
-    authService.isLoggedIn() &&
-    isEmployeeWithPositionOrFallback(authService, [EmployeePosition.WAREHOUSE_WORKER])
-  ) {
+  if (authService.isLoggedIn() && (role === Role.ADMIN || isWarehouseRole(role))) {
     return true;
   }
 
@@ -92,11 +102,9 @@ export const warehouseGuard: CanActivateFn = () => {
 export const receptionGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const role = authService.getStoredRole();
 
-  if (
-    authService.isLoggedIn() &&
-    isEmployeeWithPositionOrFallback(authService, [EmployeePosition.RECEPCIONISTA])
-  ) {
+  if (authService.isLoggedIn() && (role === Role.ADMIN || isReceptionRole(role))) {
     return true;
   }
 

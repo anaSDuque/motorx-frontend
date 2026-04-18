@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { EmployeePosition, Role } from '../../models';
+import { Role } from '../../models';
 
 @Component({
   selector: 'app-role-home-redirect',
@@ -14,19 +14,18 @@ export class RoleHomeRedirect implements OnInit {
 
   ngOnInit(): void {
     const role = this.authService.getStoredRole();
-    const position = this.authService.getStoredEmployeePosition();
 
     if (role === Role.ADMIN) {
       this.router.navigate(['/admin/dashboard']);
       return;
     }
 
-    if (role === Role.EMPLOYEE && position === EmployeePosition.WAREHOUSE_WORKER) {
+    if (role === Role.WARE_HOUSE_WORKER) {
       this.router.navigate(['/warehouse/home']);
       return;
     }
 
-    if (role === Role.EMPLOYEE) {
+    if (role === Role.RECEPTIONIST || role === Role.EMPLOYEE) {
       this.router.navigate(['/reception']);
       return;
     }

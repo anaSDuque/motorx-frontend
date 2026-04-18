@@ -6,7 +6,7 @@ import { ThemeService } from '../../services/theme.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationApiService } from '../../services/notification-api.service';
 import { NotificationService } from '../../services/notification.service';
-import { EmployeePosition, NotificationResponseDTO } from '../../models';
+import { NotificationResponseDTO, Role } from '../../models';
 
 @Component({
   selector: 'app-layout',
@@ -40,20 +40,26 @@ export class Layout implements OnInit {
   }
 
   protected get isAdmin(): boolean {
-    return this.authService.getStoredRole() === 'ADMIN';
+    return this.authService.getStoredRole() === Role.ADMIN;
   }
 
   protected get isEmployee(): boolean {
-    return this.authService.getStoredRole() === 'EMPLOYEE';
+    const role = this.authService.getStoredRole();
+    return (
+      role === Role.RECEPTIONIST ||
+      role === Role.WARE_HOUSE_WORKER ||
+      role === Role.TECHNICIAN ||
+      role === Role.EMPLOYEE
+    );
   }
 
   protected get isWarehouseEmployee(): boolean {
-    return this.authService.getStoredEmployeePosition() === EmployeePosition.WAREHOUSE_WORKER;
+    return this.authService.getStoredRole() === Role.WARE_HOUSE_WORKER;
   }
 
   protected get isReceptionEmployee(): boolean {
-    const position = this.authService.getStoredEmployeePosition();
-    return this.isEmployee && position !== EmployeePosition.WAREHOUSE_WORKER;
+    const role = this.authService.getStoredRole();
+    return role === Role.RECEPTIONIST || role === Role.EMPLOYEE;
   }
 
   protected get isClient(): boolean {

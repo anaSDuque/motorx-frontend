@@ -31,6 +31,9 @@ export enum EmployeeState {
 
 export enum Role {
   CLIENT = 'CLIENT',
+  RECEPTIONIST = 'RECEPTIONIST',
+  WARE_HOUSE_WORKER = 'WARE_HOUSE_WORKER',
+  TECHNICIAN = 'TECHNICIAN',
   EMPLOYEE = 'EMPLOYEE',
   ADMIN = 'ADMIN',
 }

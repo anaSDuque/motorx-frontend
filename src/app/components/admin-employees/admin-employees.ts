@@ -1,5 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AdminEmployeeService } from '../../services/admin-employee.service';
 import {
   EmployeeResponseDTO,
@@ -23,6 +31,12 @@ export class AdminEmployees implements OnInit {
   private static readonly STRONG_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{8,}$/;
 
   private readonly employeeService = inject(AdminEmployeeService);
+  private static readonly NON_BLANK_VALIDATOR: ValidatorFn = (
+    control: AbstractControl,
+  ): ValidationErrors | null => {
+    const value = String(control.value ?? '');
+    return value.trim().length === 0 ? { blank: true } : null;
+  };
 
   protected readonly employees = signal<EmployeeResponseDTO[]>([]);
   protected readonly loading = signal(true);
@@ -34,6 +48,7 @@ export class AdminEmployees implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly formLoading = signal(false);
   protected readonly formError = signal('');
+  protected readonly showPassword = signal(false);
 
   // Create fields
   protected readonly position = signal<EmployeePosition>(EmployeePosition.MECANICO);
@@ -49,11 +64,38 @@ export class AdminEmployees implements OnInit {
 
   protected readonly positionControl = new FormControl<EmployeePosition>(EmployeePosition.MECANICO, { nonNullable: true });
   protected readonly stateControl = new FormControl<EmployeeState>(EmployeeState.AVAILABLE, { nonNullable: true });
-  protected readonly userNameControl = new FormControl('', { nonNullable: true });
-  protected readonly userDniControl = new FormControl('', { nonNullable: true });
-  protected readonly userEmailControl = new FormControl('', { nonNullable: true });
-  protected readonly userPasswordControl = new FormControl('', { nonNullable: true });
-  protected readonly userPhoneControl = new FormControl('', { nonNullable: true });
+  protected readonly userNameControl = new FormControl('', {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.minLength(3),
+      AdminEmployees.NON_BLANK_VALIDATOR,
+    ],
+  });
+  protected readonly userDniControl = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.pattern(AdminEmployees.DNI_REGEX)],
+  });
+  protected readonly userEmailControl = new FormControl('', {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      AdminEmployees.NON_BLANK_VALIDATOR,
+      Validators.pattern(AdminEmployees.EMAIL_REGEX),
+    ],
+  });
+  protected readonly userPasswordControl = new FormControl('', {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      AdminEmployees.NON_BLANK_VALIDATOR,
+      Validators.pattern(AdminEmployees.STRONG_PASSWORD_REGEX),
+    ],
+  });
+  protected readonly userPhoneControl = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.pattern(AdminEmployees.PHONE_REGEX)],
+  });
 
   constructor() {
     this.positionControl.valueChanges.subscribe((value) => this.position.set(value));
@@ -130,88 +172,143 @@ export class AdminEmployees implements OnInit {
     this.resetForm();
   }
 
-  protected onSubmit(): void {
+  protected onPrimaryAction(): void {
+    if (this.editingId()) {
+      this.onUpdateEmployee();
+      return;
+    }
+
+    this.onCreateEmployee();
+  }
+
+  private onUpdateEmployee(): void {
+    console.log('[AdminEmployees] update triggered', {
+      editingId: this.editingId(),
+      showForm: this.showForm(),
+    });
+
     this.formLoading.set(true);
     this.formError.set('');
+    this.success.set('');
+    this.error.set('');
 
-    if (this.editingId()) {
-      const dto: UpdateEmployeeRequestDTO = {
-        position: this.position(),
-        state: this.state(),
-      };
-      this.employeeService.updateEmployee(this.editingId()!, dto).subscribe({
-        next: () => {
-          this.formLoading.set(false);
-          this.showForm.set(false);
-          this.success.set('Empleado actualizado');
-          this.loadEmployees();
-        },
-        error: (err) => {
-          this.formLoading.set(false);
-          this.formError.set(err.error?.message ?? 'Error al actualizar');
-        },
+    const dto: UpdateEmployeeRequestDTO = {
+      position: this.position(),
+      state: this.state(),
+    };
+    this.employeeService.updateEmployee(this.editingId()!, dto).subscribe({
+      next: () => {
+        this.formLoading.set(false);
+        this.showForm.set(false);
+        this.success.set('Empleado actualizado');
+        this.loadEmployees();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('[AdminEmployees] update employee failed', err);
+        this.formLoading.set(false);
+        this.formError.set(this.extractApiErrorMessage(err, 'Error al actualizar'));
+      },
+    });
+  }
+
+  private onCreateEmployee(): void {
+    console.log('[AdminEmployees] create triggered', {
+      editingId: this.editingId(),
+      showForm: this.showForm(),
+    });
+
+    this.formLoading.set(true);
+    this.formError.set('');
+    this.success.set('');
+    this.error.set('');
+
+    this.markCreateControlsAsTouched();
+
+    const normalizedName = this.userName().trim().replace(/\s+/g, ' ');
+    const normalizedDni = this.userDni().replace(/\D/g, '');
+    const normalizedEmail = this.userEmail().trim().toLowerCase();
+    const normalizedPhone = this.userPhone().replace(/\D/g, '');
+    const normalizedPassword = this.userPassword();
+
+    this.userName.set(normalizedName);
+    this.userDni.set(normalizedDni);
+    this.userEmail.set(normalizedEmail);
+    this.userPhone.set(normalizedPhone);
+    this.userNameControl.setValue(normalizedName, { emitEvent: false });
+    this.userDniControl.setValue(normalizedDni, { emitEvent: false });
+    this.userEmailControl.setValue(normalizedEmail, { emitEvent: false });
+    this.userPhoneControl.setValue(normalizedPhone, { emitEvent: false });
+
+    if (
+      this.userNameControl.invalid ||
+      this.userDniControl.invalid ||
+      this.userEmailControl.invalid ||
+      this.userPasswordControl.invalid ||
+      this.userPhoneControl.invalid
+    ) {
+      console.warn('[AdminEmployees] create form invalid', {
+        name: this.userNameControl.errors,
+        dni: this.userDniControl.errors,
+        email: this.userEmailControl.errors,
+        password: this.userPasswordControl.errors,
+        phone: this.userPhoneControl.errors,
       });
-    } else {
-      const normalizedName = this.userName().trim().replace(/\s+/g, ' ');
-      const normalizedDni = this.userDni().replace(/\D/g, '');
-      const normalizedEmail = this.userEmail().trim().toLowerCase();
-      const normalizedPhone = this.userPhone().replace(/\D/g, '');
-      const normalizedPassword = this.userPassword();
-
-      this.userName.set(normalizedName);
-      this.userDni.set(normalizedDni);
-      this.userEmail.set(normalizedEmail);
-      this.userPhone.set(normalizedPhone);
-
-      if (!normalizedName || !normalizedDni || !normalizedEmail || !normalizedPassword.trim() || !normalizedPhone) {
-        this.formLoading.set(false);
-        this.formError.set('Completa todos los campos obligatorios');
-        return;
-      }
-      if (!AdminEmployees.DNI_REGEX.test(normalizedDni)) {
-        this.formLoading.set(false);
-        this.formError.set('El DNI debe contener solo números (6 a 12 dígitos)');
-        return;
-      }
-      if (!AdminEmployees.EMAIL_REGEX.test(normalizedEmail)) {
-        this.formLoading.set(false);
-        this.formError.set('Ingresa un correo electrónico válido');
-        return;
-      }
-      if (!AdminEmployees.PHONE_REGEX.test(normalizedPhone)) {
-        this.formLoading.set(false);
-        this.formError.set('Ingresa un teléfono válido (7 a 10 dígitos)');
-        return;
-      }
-      if (!AdminEmployees.STRONG_PASSWORD_REGEX.test(normalizedPassword)) {
-        this.formLoading.set(false);
-        this.formError.set('La contraseña temporal debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo');
-        return;
-      }
-
-      const dto: CreateEmployeeRequestDTO = {
-        position: this.position(),
-        user: {
-          name: normalizedName,
-          dni: normalizedDni,
-          email: normalizedEmail,
-          password: normalizedPassword,
-          phone: normalizedPhone,
-        },
-      };
-      this.employeeService.createEmployee(dto).subscribe({
-        next: () => {
-          this.formLoading.set(false);
-          this.showForm.set(false);
-          this.success.set('Empleado creado exitosamente');
-          this.loadEmployees();
-        },
-        error: (err) => {
-          this.formLoading.set(false);
-          this.formError.set(err.error?.message ?? 'Error al crear');
-        },
-      });
+      this.formLoading.set(false);
+      this.formError.set('Corrige los errores del formulario antes de continuar');
+      return;
     }
+
+    if (!normalizedName || !normalizedDni || !normalizedEmail || !normalizedPassword.trim() || !normalizedPhone) {
+      this.formLoading.set(false);
+      this.formError.set('Completa todos los campos obligatorios');
+      return;
+    }
+    if (!AdminEmployees.DNI_REGEX.test(normalizedDni)) {
+      this.formLoading.set(false);
+      this.formError.set('El DNI debe contener solo números (6 a 12 dígitos)');
+      return;
+    }
+    if (!AdminEmployees.EMAIL_REGEX.test(normalizedEmail)) {
+      this.formLoading.set(false);
+      this.formError.set('Ingresa un correo electrónico válido');
+      return;
+    }
+    if (!AdminEmployees.PHONE_REGEX.test(normalizedPhone)) {
+      this.formLoading.set(false);
+      this.formError.set('Ingresa un teléfono válido (7 a 10 dígitos)');
+      return;
+    }
+    if (!AdminEmployees.STRONG_PASSWORD_REGEX.test(normalizedPassword)) {
+      this.formLoading.set(false);
+      this.formError.set('La contraseña temporal debe tener mínimo 8 caracteres, una mayúscula, un número y un símbolo');
+      return;
+    }
+
+    const dto: CreateEmployeeRequestDTO = {
+      position: this.position(),
+      user: {
+        name: normalizedName,
+        dni: normalizedDni,
+        email: normalizedEmail,
+        password: normalizedPassword,
+        phone: normalizedPhone,
+      },
+    };
+    console.log('[AdminEmployees] creating employee with payload', dto);
+    this.employeeService.createEmployee(dto).subscribe({
+      next: () => {
+        console.log('[AdminEmployees] employee created successfully');
+        this.formLoading.set(false);
+        this.showForm.set(false);
+        this.success.set('Empleado creado exitosamente');
+        this.loadEmployees();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('[AdminEmployees] create employee failed', err);
+        this.formLoading.set(false);
+        this.formError.set(this.extractApiErrorMessage(err, 'Error al crear'));
+      },
+    });
   }
 
   protected deleteEmployee(id: number): void {
@@ -233,6 +330,47 @@ export class AdminEmployees implements OnInit {
     return state === 'AVAILABLE' ? 'bg-success' : 'bg-secondary';
   }
 
+  private extractApiErrorMessage(error: HttpErrorResponse, fallback: string): string {
+    const backend = error.error as
+      | { message?: string; details?: Record<string, string> | null }
+      | null
+      | undefined;
+    const message = backend?.message?.trim();
+    const details = backend?.details
+      ? Object.values(backend.details)
+          .map((value) => String(value).trim())
+          .filter((value) => value.length > 0)
+      : [];
+
+    if (message && details.length > 0) {
+      return `${message}: ${details.join(', ')}`;
+    }
+    if (message) {
+      return message;
+    }
+    if (details.length > 0) {
+      return details.join(', ');
+    }
+
+    return fallback;
+  }
+
+  protected togglePasswordVisibility(): void {
+    this.showPassword.set(!this.showPassword());
+  }
+
+  protected shouldShowControlError(control: FormControl<string>): boolean {
+    return control.touched && control.invalid;
+  }
+
+  private markCreateControlsAsTouched(): void {
+    this.userNameControl.markAsTouched();
+    this.userDniControl.markAsTouched();
+    this.userEmailControl.markAsTouched();
+    this.userPasswordControl.markAsTouched();
+    this.userPhoneControl.markAsTouched();
+  }
+
   private resetForm(): void {
     this.position.set(EmployeePosition.MECANICO);
     this.state.set(EmployeeState.AVAILABLE);
@@ -249,5 +387,16 @@ export class AdminEmployees implements OnInit {
     this.userPasswordControl.setValue('', { emitEvent: false });
     this.userPhoneControl.setValue('', { emitEvent: false });
     this.formError.set('');
+    this.showPassword.set(false);
+    this.userNameControl.markAsPristine();
+    this.userDniControl.markAsPristine();
+    this.userEmailControl.markAsPristine();
+    this.userPasswordControl.markAsPristine();
+    this.userPhoneControl.markAsPristine();
+    this.userNameControl.markAsUntouched();
+    this.userDniControl.markAsUntouched();
+    this.userEmailControl.markAsUntouched();
+    this.userPasswordControl.markAsUntouched();
+    this.userPhoneControl.markAsUntouched();
   }
 }

@@ -7,7 +7,6 @@ import {
   CreateSpareDTO,
   UpdateSpareDTO,
   SpareResponseDTO,
-  EmployeePosition,
   Role,
 } from '../../models';
 
@@ -59,7 +58,7 @@ export class SpareList implements OnInit {
   }
 
   protected get isWarehouseWorker(): boolean {
-    return this.authService.getStoredEmployeePosition() === EmployeePosition.WAREHOUSE_WORKER;
+    return this.authService.getStoredRole() === Role.WARE_HOUSE_WORKER;
   }
 
   protected loadSpares(): void {
