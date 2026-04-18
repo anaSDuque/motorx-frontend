@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BASE_API } from './api.config';
 import {
@@ -8,6 +8,10 @@ import {
   MaintainabilityMetricsDTO,
   AppointmentsMetricsDTO,
   MetricsSummaryDTO,
+  InventoryTopSellingMetricDTO,
+  InventoryProfitMetricDTO,
+  InventoryStagnantMetricDTO,
+  InventoryBelowThresholdPercentageDTO,
 } from '../models/metrics.model';
 
 @Injectable({ providedIn: 'root' })
@@ -33,5 +37,27 @@ export class AdminMetricsService {
 
   getSummary(): Observable<MetricsSummaryDTO> {
     return this.http.get<MetricsSummaryDTO>(`${this.baseUrl}/summary`);
+  }
+
+  getInventoryTopSelling(limit = 10): Observable<InventoryTopSellingMetricDTO[]> {
+    const params = new HttpParams().set('limit', limit);
+    return this.http.get<InventoryTopSellingMetricDTO[]>(`${this.baseUrl}/inventory/top-selling`, { params });
+  }
+
+  getInventoryProfit(startDate: string, endDate: string): Observable<InventoryProfitMetricDTO> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get<InventoryProfitMetricDTO>(`${this.baseUrl}/inventory/profit`, { params });
+  }
+
+  getInventoryStagnant(daysWithoutSales = 60): Observable<InventoryStagnantMetricDTO[]> {
+    const params = new HttpParams().set('daysWithoutSales', daysWithoutSales);
+    return this.http.get<InventoryStagnantMetricDTO[]>(`${this.baseUrl}/inventory/stagnant`, { params });
+  }
+
+  getInventoryBelowThresholdPercentage(): Observable<InventoryBelowThresholdPercentageDTO> {
+    return this.http.get<InventoryBelowThresholdPercentageDTO>(`${this.baseUrl}/inventory/below-threshold-percentage`);
   }
 }

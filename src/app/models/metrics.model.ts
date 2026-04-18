@@ -38,3 +38,32 @@ export interface MetricsSummaryDTO {
   maintainability: MaintainabilityMetricsDTO;
   appointments: AppointmentsMetricsDTO;
 }
+
+export interface InventoryTopSellingMetricDTO {
+  spareId: number;
+  spareCode: string;
+  spareName: string;
+  totalQuantitySold: number;
+}
+
+export interface InventoryProfitMetricDTO {
+  startDate: string;
+  endDate: string;
+  grossSales: number;
+  estimatedProfit: number;
+}
+
+export interface InventoryStagnantMetricDTO {
+  spareId: number;
+  spareCode: string;
+  spareName: string;
+  quantity: number;
+  lastSaleDate: string | null;
+  daysWithoutSales: number | null;
+}
+
+export interface InventoryBelowThresholdPercentageDTO {
+  percentage: number;
+  belowThresholdCount: number;
+  totalConsidered: number;
+}

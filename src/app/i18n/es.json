@@ -118,6 +118,17 @@
         "welcomeBack": "Bienvenido de nuevo",
         "summary": "Resumen de tu actividad"
     },
+    "chatbot": {
+        "title": "Asistente MotorX",
+        "subtitle": "Resolvemos tus dudas en segundos",
+        "open": "Abrir chatbot",
+        "close": "Cerrar chatbot",
+        "typing": "Escribiendo",
+        "placeholder": "Escribe tu pregunta...",
+        "emptyTitle": "Hola, soy tu asistente virtual",
+        "emptySubtitle": "Pregúntame sobre citas, motos o servicios del taller.",
+        "limit": "Máximo 250 caracteres por mensaje"
+    },
     "common": {
         "loading": "Cargando...",
         "error": "Ha ocurrido un error",

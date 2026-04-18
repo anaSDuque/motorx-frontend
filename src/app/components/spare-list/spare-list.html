@@ -10,6 +10,31 @@
     <span><i class="bi bi-exclamation-triangle me-2"></i>Mostrando repuestos bajo umbral de stock.</span>
     <a class="btn btn-sm btn-outline-dark" routerLink="/spares">Ver todos</a>
   </div>
+} @else {
+  <div class="card border-0 mb-4">
+    <div class="card-body py-3">
+      <form [formGroup]="searchForm" (ngSubmit)="applyFilters()">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5">
+            <label class="form-label">Buscar por nombre</label>
+            <input class="form-control" formControlName="name" placeholder="Ej: Pastillas de freno" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Buscar por SAV Code</label>
+            <input class="form-control" formControlName="savCode" placeholder="Ej: SAV-001" />
+          </div>
+          <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-outline-primary w-100" type="submit">
+              <i class="bi bi-search me-1"></i>Buscar
+            </button>
+            <button class="btn btn-outline-secondary w-100" type="button" (click)="clearFilters()" [disabled]="!hasActiveFilters()">
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 }
 
 @if (success()) {

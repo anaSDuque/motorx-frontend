@@ -11,3 +11,4 @@ export * from './reception.model';
 export * from './log.model';
 export * from './metrics.model';
 export * from './notification.model';
+export * from './chatbot.model';

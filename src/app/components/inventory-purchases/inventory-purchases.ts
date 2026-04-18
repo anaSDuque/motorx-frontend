@@ -13,7 +13,7 @@ import {
   PurchaseTransactionResponseDTO,
   CreatePurchaseTransactionDTO,
 } from '../../models/inventory.model';
-import { SpareResponseDTO } from '../../models/spare.model';
+import { CreateSpareDTO, SpareResponseDTO } from '../../models/spare.model';
 
 @Component({
   selector: 'app-inventory-purchases',
@@ -34,10 +34,25 @@ export class InventoryPurchases implements OnInit {
   protected readonly spares = signal<SpareResponseDTO[]>([]);
 
   protected readonly creating = signal(false);
+  protected readonly showCreateSpareModal = signal(false);
+  protected readonly creatingSpare = signal(false);
+  protected readonly spareFormError = signal('');
 
   protected readonly purchaseForm = this.fb.group({
     notes: [''],
     items: this.fb.array([this.createItemGroup()]),
+  });
+
+  protected readonly spareForm = this.fb.nonNullable.group({
+    savCode: ['', [Validators.required, Validators.maxLength(100)]],
+    spareCode: ['', [Validators.required, Validators.maxLength(100)]],
+    name: ['', [Validators.required, Validators.maxLength(150)]],
+    description: ['', [Validators.maxLength(500)]],
+    quantity: [0, [Validators.required, Validators.min(0)]],
+    purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
+    isOil: [false],
+    warehouseLocation: ['', [Validators.required, Validators.pattern(/^\d{2}-\d{2}-\d{2}-\d{2}$/)]],
+    stockThreshold: [0, [Validators.required, Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -58,6 +73,10 @@ export class InventoryPurchases implements OnInit {
       },
     });
 
+    this.loadSpares();
+  }
+
+  private loadSpares(): void {
     this.spareService.getSpares().subscribe({
       next: (data) => this.spares.set(data),
       error: () => {},
@@ -119,9 +138,87 @@ export class InventoryPurchases implements OnInit {
     });
   }
 
+  protected openCreateSpareModal(): void {
+    this.resetSpareForm();
+    this.spareForm.controls.warehouseLocation.setValue('00-00-00-00');
+    this.showCreateSpareModal.set(true);
+  }
+
+  protected closeCreateSpareModal(): void {
+    this.showCreateSpareModal.set(false);
+    this.resetSpareForm();
+  }
+
+  protected createSpareFromPurchase(): void {
+    this.spareForm.markAllAsTouched();
+    if (this.spareForm.invalid) {
+      this.spareFormError.set('Completa correctamente los campos requeridos.');
+      return;
+    }
+
+    const raw = this.spareForm.getRawValue();
+    const normalized = {
+      savCode: raw.savCode.trim(),
+      spareCode: raw.spareCode.trim(),
+      name: raw.name.trim(),
+      description: raw.description.trim(),
+      quantity: raw.quantity,
+      purchasePriceWithVat: raw.purchasePriceWithVat,
+      isOil: raw.isOil,
+      warehouseLocation: raw.warehouseLocation.trim(),
+      stockThreshold: raw.stockThreshold,
+    };
+
+    if (!normalized.savCode || !normalized.spareCode || !normalized.name || !normalized.warehouseLocation) {
+      this.spareFormError.set('No se permiten campos en blanco.');
+      return;
+    }
+
+    const dto: CreateSpareDTO = {
+      savCode: normalized.savCode,
+      spareCode: normalized.spareCode,
+      name: normalized.name,
+      description: normalized.description || undefined,
+      quantity: normalized.quantity,
+      purchasePriceWithVat: normalized.purchasePriceWithVat,
+      isOil: normalized.isOil,
+      warehouseLocation: normalized.warehouseLocation,
+      stockThreshold: normalized.stockThreshold,
+    };
+
+    this.creatingSpare.set(true);
+    this.spareFormError.set('');
+
+    this.spareService.createSpare(dto).subscribe({
+      next: (createdSpare) => {
+        this.creatingSpare.set(false);
+        this.success.set('Repuesto creado exitosamente');
+        this.closeCreateSpareModal();
+        this.loadSpares();
+
+        const firstEmptyItem = this.items.controls.find((control) => !control.get('spareId')?.value);
+        if (firstEmptyItem) {
+          firstEmptyItem.get('spareId')?.setValue(createdSpare.id);
+        }
+      },
+      error: (err) => {
+        this.creatingSpare.set(false);
+        this.spareFormError.set(err.error?.message ?? 'Error al crear repuesto');
+      },
+    });
+  }
+
   protected hasError(index: number, controlName: 'spareId' | 'quantity' | 'purchasePriceWithVat', errorName: string): boolean {
     const control = this.getItemGroup(index).get(controlName);
     return !!control && control.touched && control.hasError(errorName);
+  }
+
+  protected hasSpareFormError(
+    controlName: keyof typeof this.spareForm.controls,
+    errorName: string
+  ): boolean {
+    const control = this.spareForm.controls[controlName];
+    return control.touched && control.hasError(errorName);
   }
 
   private createItemGroup(): FormGroup {
@@ -130,5 +227,20 @@ export class InventoryPurchases implements OnInit {
       quantity: [1, [Validators.required, Validators.min(1)]],
       purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
     });
+  }
+
+  private resetSpareForm(): void {
+    this.spareForm.reset({
+      savCode: '',
+      spareCode: '',
+      name: '',
+      description: '',
+      quantity: 0,
+      purchasePriceWithVat: 0,
+      isOil: false,
+      warehouseLocation: '00-00-00-00',
+      stockThreshold: 0,
+    });
+    this.spareFormError.set('');
   }
 }
