@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h3 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Métricas del sistema</h3>
-  <button class="btn btn-outline-primary" (click)="loadSummary()">
+  <h3 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2"></i>Dashboard de métricas</h3>
+  <button class="btn btn-primary" (click)="loadSummary()">
     <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
   </button>
 </div>
@@ -13,93 +13,229 @@
 }
 
 @if (loading()) {
-  <div class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
+  <div class="dashboard-loader text-center py-5">
+    <div class="spinner-border text-light"></div>
   </div>
 } @else if (summary(); as s) {
+  <div class="card border-0 mb-4 dashboard-filter-card">
+    <div class="card-header bg-transparent fw-semibold">Filtros de inventario</div>
+    <div class="card-body pt-3">
+      <form [formGroup]="inventoryFiltersForm" (ngSubmit)="loadSummary()">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-2">
+            <label class="form-label">Top vendidos</label>
+            <input type="number" class="form-control" formControlName="topSellingLimit" min="1" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha inicial</label>
+            <input type="date" class="form-control" formControlName="profitStartDate" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha final</label>
+            <input type="date" class="form-control" formControlName="profitEndDate" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Días sin venta</label>
+            <input type="number" class="form-control" formControlName="stagnantDays" min="1" />
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-dark w-100" type="submit">
+              <i class="bi bi-funnel me-1"></i>Aplicar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="dashboard-kpi-grid mb-4">
+    <div class="kpi-tile kpi-a">
+      <p class="kpi-label">Intentos 401</p>
+      <p class="kpi-value">{{ s.security.unauthorizedAttempts401 }}</p>
+    </div>
+    <div class="kpi-tile kpi-b">
+      <p class="kpi-label">Intentos 403</p>
+      <p class="kpi-value">{{ s.security.forbiddenAttempts403 }}</p>
+    </div>
+    <div class="kpi-tile kpi-c">
+      <p class="kpi-label">Cumplimiento acceso</p>
+      <p class="kpi-value">{{ s.security.accessControlCompliancePercent }}%</p>
+    </div>
+    @if (inventoryProfit(); as profit) {
+      <div class="kpi-tile kpi-d">
+        <p class="kpi-label">Ganancia estimada</p>
+        <p class="kpi-value">{{ profit.estimatedProfit }}</p>
+      </div>
+    }
+  </div>
+
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card h-100 border-0">
-        <div class="card-body">
-          <h6 class="text-muted mb-2">Intentos 401</h6>
-          <div class="display-6 fw-bold">{{ s.security.unauthorizedAttempts401 }}</div>
+    <div class="col-xl-7">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Performance por endpoint</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="performanceChart.series"
+            [chart]="performanceChart.chart"
+            [xaxis]="performanceChart.xaxis"
+            [yaxis]="performanceChart.yaxis"
+            [dataLabels]="performanceChart.dataLabels"
+            [stroke]="performanceChart.stroke"
+            [colors]="performanceChart.colors"
+            [grid]="performanceChart.grid"
+            [tooltip]="performanceChart.tooltip"
+          ></apx-chart>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0">
-        <div class="card-body">
-          <h6 class="text-muted mb-2">Intentos 403</h6>
-          <div class="display-6 fw-bold">{{ s.security.forbiddenAttempts403 }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0">
-        <div class="card-body">
-          <h6 class="text-muted mb-2">Cumplimiento acceso</h6>
-          <div class="display-6 fw-bold">{{ s.security.accessControlCompliancePercent }}%</div>
+    <div class="col-xl-5">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Top repuestos vendidos</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="inventoryTopSellingChart.series"
+            [chart]="inventoryTopSellingChart.chart"
+            [xaxis]="inventoryTopSellingChart.xaxis"
+            [plotOptions]="inventoryTopSellingChart.plotOptions"
+            [dataLabels]="inventoryTopSellingChart.dataLabels"
+            [colors]="inventoryTopSellingChart.colors"
+            [grid]="inventoryTopSellingChart.grid"
+            [tooltip]="inventoryTopSellingChart.tooltip"
+          ></apx-chart>
         </div>
       </div>
     </div>
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-6">
-      <div class="card border-0 h-100">
-        <div class="card-header bg-transparent fw-semibold">Mantenibilidad</div>
-        <div class="card-body">
-          <div class="mb-2">Controladores: <strong>{{ s.maintainability.totalControllers }}</strong></div>
-          <div class="mb-2">Servicios: <strong>{{ s.maintainability.totalServices }}</strong></div>
-          <div class="mb-2">Repositorios: <strong>{{ s.maintainability.totalRepositories }}</strong></div>
-          <div class="mb-2">Errores estandarizados: <strong>{{ s.maintainability.standardizedErrorHandlingEnabled ? 'Sí' : 'No' }}</strong></div>
-          <div>JaCoCo Gate: <strong>{{ s.maintainability.jacocoCoverageGatePercent }}%</strong></div>
+    <div class="col-xl-4">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Seguridad HTTP</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="securityAttemptsChart.series"
+            [chart]="securityAttemptsChart.chart"
+            [labels]="securityAttemptsChart.labels"
+            [colors]="securityAttemptsChart.colors"
+            [legend]="securityAttemptsChart.legend"
+            [dataLabels]="securityAttemptsChart.dataLabels"
+            [stroke]="securityAttemptsChart.stroke"
+            [responsive]="securityAttemptsChart.responsive"
+          ></apx-chart>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card border-0 h-100">
-        <div class="card-header bg-transparent fw-semibold">Citas</div>
-        <div class="card-body">
-          <div class="mb-2">Intentos de creación: <strong>{{ s.appointments.totalCreationAttempts }}</strong></div>
-          <div class="mb-2">Citas exitosas: <strong>{{ s.appointments.successfulAppointments }}</strong></div>
-          <div class="mb-2">Rechazadas por reglas: <strong>{{ s.appointments.rejectedByBusinessRules }}</strong></div>
-          <div class="mb-2">Cumplimiento de reglas: <strong>{{ s.appointments.businessRuleCompliancePercent }}%</strong></div>
-          <div>Integridad de datos: <strong>{{ s.appointments.dataIntegrityPercent }}%</strong></div>
+    <div class="col-xl-4">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Cumplimiento de acceso</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="accessComplianceChart.series"
+            [chart]="accessComplianceChart.chart"
+            [labels]="accessComplianceChart.labels"
+            [colors]="accessComplianceChart.colors"
+            [plotOptions]="accessComplianceChart.plotOptions"
+            [stroke]="accessComplianceChart.stroke"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Stock bajo umbral</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="thresholdChart.series"
+            [chart]="thresholdChart.chart"
+            [labels]="thresholdChart.labels"
+            [colors]="thresholdChart.colors"
+            [plotOptions]="thresholdChart.plotOptions"
+          ></apx-chart>
+          <small class="text-muted d-block px-2 pb-2">
+            {{ inventoryBelowThreshold()?.belowThresholdCount ?? 0 }} de
+            {{ inventoryBelowThreshold()?.totalConsidered ?? 0 }} repuestos con umbral.
+          </small>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card border-0">
-    <div class="card-header bg-transparent fw-semibold">Performance por endpoint</div>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>Endpoint</th>
-            <th>Promedio (ms)</th>
-            <th>Total requests</th>
-            <th>Bajo umbral</th>
-            <th>Cumplimiento</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (metric of s.performance; track metric.endpoint) {
-            <tr>
-              <td class="fw-semibold">{{ metric.endpoint }}</td>
-              <td>{{ metric.avgResponseTimeMs }}</td>
-              <td>{{ metric.totalRequests }}</td>
-              <td>{{ metric.requestsUnderThreshold }}</td>
-              <td>{{ metric.compliancePercent }}%</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">No hay métricas de performance disponibles.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <div class="row g-3 mb-4">
+    <div class="col-xl-5">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Ventas vs ganancia</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="inventoryProfitChart.series"
+            [chart]="inventoryProfitChart.chart"
+            [xaxis]="inventoryProfitChart.xaxis"
+            [yaxis]="inventoryProfitChart.yaxis"
+            [plotOptions]="inventoryProfitChart.plotOptions"
+            [dataLabels]="inventoryProfitChart.dataLabels"
+            [colors]="inventoryProfitChart.colors"
+            [tooltip]="inventoryProfitChart.tooltip"
+          ></apx-chart>
+          <small class="text-muted px-2 pb-2 d-block">
+            Rango consultado: {{ inventoryFiltersForm.controls.profitStartDate.value }} a
+            {{ inventoryFiltersForm.controls.profitEndDate.value }}.
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-7">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Repuestos estancados</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="inventoryStagnantChart.series"
+            [chart]="inventoryStagnantChart.chart"
+            [xaxis]="inventoryStagnantChart.xaxis"
+            [plotOptions]="inventoryStagnantChart.plotOptions"
+            [dataLabels]="inventoryStagnantChart.dataLabels"
+            [colors]="inventoryStagnantChart.colors"
+            [grid]="inventoryStagnantChart.grid"
+            [tooltip]="inventoryStagnantChart.tooltip"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-xl-6">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Calidad de citas</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="appointmentsChart.series"
+            [chart]="appointmentsChart.chart"
+            [labels]="appointmentsChart.labels"
+            [colors]="appointmentsChart.colors"
+            [legend]="appointmentsChart.legend"
+            [dataLabels]="appointmentsChart.dataLabels"
+            [stroke]="appointmentsChart.stroke"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-6">
+      <div class="card border-0 chart-card h-100">
+        <div class="card-header bg-transparent fw-semibold">Mantenibilidad estructural</div>
+        <div class="card-body pt-0">
+          <apx-chart
+            [series]="maintainabilityChart.series"
+            [chart]="maintainabilityChart.chart"
+            [xaxis]="maintainabilityChart.xaxis"
+            [stroke]="maintainabilityChart.stroke"
+            [fill]="maintainabilityChart.fill"
+            [colors]="maintainabilityChart.colors"
+            [tooltip]="maintainabilityChart.tooltip"
+          ></apx-chart>
+          <div class="px-2 pb-2 text-muted small">
+            Errores estandarizados: {{ s.maintainability.standardizedErrorHandlingEnabled ? 'Sí' : 'No' }}.
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 }

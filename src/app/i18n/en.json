@@ -118,6 +118,17 @@
         "welcomeBack": "Welcome back",
         "summary": "Your activity summary"
     },
+    "chatbot": {
+        "title": "MotorX Assistant",
+        "subtitle": "We answer your questions quickly",
+        "open": "Open chatbot",
+        "close": "Close chatbot",
+        "typing": "Typing",
+        "placeholder": "Write your question...",
+        "emptyTitle": "Hi, I am your virtual assistant",
+        "emptySubtitle": "Ask me about appointments, bikes, or workshop services.",
+        "limit": "Maximum 250 characters per message"
+    },
     "common": {
         "loading": "Loading...",
         "error": "An error occurred",

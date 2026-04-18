@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BASE_API } from './api.config';
 import {
   CreateSpareDTO,
+  SpareFiltersDTO,
   UpdateSpareDTO,
   UpdateSparePurchasePriceDTO,
   SpareResponseDTO,
@@ -18,8 +19,17 @@ export class SpareService {
     return this.http.post<SpareResponseDTO>(this.baseUrl, dto);
   }
 
-  getSpares(): Observable<SpareResponseDTO[]> {
-    return this.http.get<SpareResponseDTO[]>(this.baseUrl);
+  getSpares(filters?: SpareFiltersDTO): Observable<SpareResponseDTO[]> {
+    let params = new HttpParams();
+
+    if (filters?.name?.trim()) {
+      params = params.set('name', filters.name.trim());
+    }
+    if (filters?.savCode?.trim()) {
+      params = params.set('savCode', filters.savCode.trim());
+    }
+
+    return this.http.get<SpareResponseDTO[]>(this.baseUrl, { params });
   }
 
   getSparesBelowThreshold(): Observable<SpareResponseDTO[]> {

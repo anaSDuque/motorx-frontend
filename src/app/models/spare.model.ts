@@ -10,6 +10,11 @@ export interface CreateSpareDTO {
   stockThreshold: number;
 }
 
+export interface SpareFiltersDTO {
+  name?: string;
+  savCode?: string;
+}
+
 export interface UpdateSpareDTO {
   savCode: string;
   spareCode: string;

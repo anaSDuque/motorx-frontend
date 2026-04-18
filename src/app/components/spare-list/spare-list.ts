@@ -5,6 +5,7 @@ import { SpareService } from '../../services/spare.service';
 import { AuthService } from '../../services/auth.service';
 import {
   CreateSpareDTO,
+  SpareFiltersDTO,
   UpdateSpareDTO,
   SpareResponseDTO,
   Role,
@@ -33,6 +34,10 @@ export class SpareList implements OnInit {
   protected readonly formLoading = signal(false);
   protected readonly formError = signal('');
   protected readonly onlyBelowThreshold = signal(false);
+  protected readonly searchForm = this.fb.nonNullable.group({
+    name: [''],
+    savCode: [''],
+  });
 
   protected readonly spareForm = this.fb.nonNullable.group({
     savCode: ['', [Validators.required, Validators.maxLength(100)]],
@@ -63,9 +68,12 @@ export class SpareList implements OnInit {
 
   protected loadSpares(): void {
     this.loading.set(true);
+    this.error.set('');
+
+    const filters = this.buildSearchFilters();
     const request$ = this.onlyBelowThreshold()
       ? this.spareService.getSparesBelowThreshold()
-      : this.spareService.getSpares();
+      : this.spareService.getSpares(filters);
 
     request$.subscribe({
       next: (data) => {
@@ -77,6 +85,27 @@ export class SpareList implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected applyFilters(): void {
+    if (this.onlyBelowThreshold()) return;
+    this.loadSpares();
+  }
+
+  protected clearFilters(): void {
+    if (this.onlyBelowThreshold()) return;
+
+    this.searchForm.reset({
+      name: '',
+      savCode: '',
+    });
+
+    this.loadSpares();
+  }
+
+  protected hasActiveFilters(): boolean {
+    const raw = this.searchForm.getRawValue();
+    return !!raw.name.trim() || !!raw.savCode.trim();
   }
 
   protected openCreateForm(): void {
@@ -243,6 +272,21 @@ export class SpareList implements OnInit {
   protected hasError(controlName: keyof typeof this.spareForm.controls, errorName: string): boolean {
     const control = this.spareForm.controls[controlName];
     return control.touched && control.hasError(errorName);
+  }
+
+  private buildSearchFilters(): SpareFiltersDTO | undefined {
+    const raw = this.searchForm.getRawValue();
+    const name = raw.name.trim();
+    const savCode = raw.savCode.trim();
+
+    if (!name && !savCode) {
+      return undefined;
+    }
+
+    return {
+      name: name || undefined,
+      savCode: savCode || undefined,
+    };
   }
 
   private resetForm(): void {

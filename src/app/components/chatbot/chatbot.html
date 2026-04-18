@@ -1,0 +1,86 @@
+@if (isVisible()) {
+  <div class="chatbot-root">
+    @if (open()) {
+      <section class="chat-window" aria-label="Chatbot MotorX">
+        <header class="chat-header d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-robot fs-5"></i>
+            <div>
+              <div class="chat-title">{{ 'chatbot.title' | translate }}</div>
+              <small>{{ 'chatbot.subtitle' | translate }}</small>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-light chat-close"
+            (click)="toggleChat()"
+            [attr.aria-label]="'chatbot.close' | translate"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </header>
+
+        <div class="chat-body">
+          @if (messages().length === 0) {
+            <div class="chat-empty">
+              <p class="mb-1">{{ 'chatbot.emptyTitle' | translate }}</p>
+              <small>{{ 'chatbot.emptySubtitle' | translate }}</small>
+            </div>
+          }
+
+          @for (message of messages(); track message.id) {
+            <article class="message-row" [class.user]="message.role === 'user'" [class.bot]="message.role === 'bot'">
+              <div class="message-bubble">{{ message.text }}</div>
+            </article>
+          }
+
+          @if (loading()) {
+            <article class="message-row bot">
+              <div class="message-bubble typing-bubble" aria-live="polite" aria-label="{{ 'chatbot.typing' | translate }}">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+            </article>
+          }
+        </div>
+
+        <footer class="chat-footer">
+          <div class="input-group">
+            <textarea
+              class="form-control"
+              rows="2"
+              [placeholder]="'chatbot.placeholder' | translate"
+              [formControl]="messageControl"
+              [attr.maxlength]="250"
+              [disabled]="loading()"
+            ></textarea>
+            <button
+              class="btn btn-primary"
+              type="button"
+              (click)="sendMessage()"
+              [disabled]="loading() || messageControl.invalid"
+            >
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+          <div class="chat-meta mt-1 d-flex justify-content-between">
+            <small>{{ 'chatbot.limit' | translate }}</small>
+            <small [class.text-danger]="charsLeft < 0">{{ charsLeft }}/250</small>
+          </div>
+        </footer>
+      </section>
+    }
+
+    <button
+      type="button"
+      class="chatbot-toggle"
+      (click)="toggleChat()"
+      [class.active]="open()"
+      [attr.aria-label]="'chatbot.open' | translate"
+      [title]="'chatbot.open' | translate"
+    >
+      <i class="bi" [class.bi-chat-dots-fill]="!open()" [class.bi-x-lg]="open()"></i>
+    </button>
+  </div>
+}

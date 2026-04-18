@@ -23,7 +23,12 @@
         @for (_item of items.controls; track $index) {
           <div class="row g-2 align-items-end mb-2" [formGroupName]="$index">
             <div class="col-md-5">
-              <label class="form-label">Repuesto</label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label mb-0">Repuesto</label>
+                <button class="btn btn-sm btn-outline-primary" type="button" (click)="openCreateSpareModal()">
+                  <i class="bi bi-plus-lg me-1"></i>Nuevo repuesto
+                </button>
+              </div>
               <select class="form-select" formControlName="spareId">
                 <option [ngValue]="null" disabled>Seleccione un repuesto</option>
                 @for (spare of spares(); track spare.id) {
@@ -75,6 +80,93 @@
     </form>
   </div>
 </div>
+
+@if (showCreateSpareModal()) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal d-block fade show" tabindex="-1" (click)="closeCreateSpareModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title">Crear repuesto</h5>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeCreateSpareModal()"></button>
+        </div>
+        <div class="modal-body">
+          @if (spareFormError()) {
+            <div class="alert alert-danger py-2">{{ spareFormError() }}</div>
+          }
+
+          <form [formGroup]="spareForm" (ngSubmit)="createSpareFromPurchase()">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">SAV Code</label>
+                <input class="form-control" formControlName="savCode" />
+                @if (hasSpareFormError('savCode', 'required')) {
+                  <small class="text-danger">El SAV Code es obligatorio.</small>
+                }
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Código repuesto</label>
+                <input class="form-control" formControlName="spareCode" />
+                @if (hasSpareFormError('spareCode', 'required')) {
+                  <small class="text-danger">El código del repuesto es obligatorio.</small>
+                }
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Ubicación bodega</label>
+                <input class="form-control" formControlName="warehouseLocation" placeholder="00-00-00-00" />
+                @if (hasSpareFormError('warehouseLocation', 'required')) {
+                  <small class="text-danger">La ubicación es obligatoria.</small>
+                }
+                @if (hasSpareFormError('warehouseLocation', 'pattern')) {
+                  <small class="text-danger">Formato inválido. Usa 00-00-00-00.</small>
+                }
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" formControlName="name" />
+                @if (hasSpareFormError('name', 'required')) {
+                  <small class="text-danger">El nombre es obligatorio.</small>
+                }
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Descripción</label>
+                <input class="form-control" formControlName="description" />
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label">Cantidad</label>
+                <input type="number" class="form-control" formControlName="quantity" min="0" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Precio compra (IVA)</label>
+                <input type="number" class="form-control" formControlName="purchasePriceWithVat" min="0" step="0.01" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Umbral mínimo</label>
+                <input type="number" class="form-control" formControlName="stockThreshold" min="0" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" formControlName="isOil" id="isOilPurchase" />
+                  <label class="form-check-label" for="isOilPurchase">¿Es aceite?</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 d-flex justify-content-end gap-2">
+              <button class="btn btn-outline-secondary" type="button" (click)="closeCreateSpareModal()">Cancelar</button>
+              <button class="btn btn-primary" type="submit" [disabled]="creatingSpare()">
+                @if (creatingSpare()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Crear repuesto
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
 @if (loading()) {
   <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
