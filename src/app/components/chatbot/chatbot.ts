@@ -21,8 +21,7 @@ export class Chatbot {
   private readonly chatbotService = inject(ChatbotService);
   private readonly notificationService = inject(NotificationService);
 
-  protected readonly isClient = signal(this.authService.getStoredRole() === Role.CLIENT);
-  protected readonly isVisible = signal(this.isClient() && this.router.url.startsWith('/dashboard'));
+  protected readonly isVisible = signal(false);
   protected readonly open = signal(false);
   protected readonly loading = signal(false);
   protected readonly messages = signal<ChatMessage[]>([]);
@@ -35,13 +34,14 @@ export class Chatbot {
   private nextId = 1;
 
   constructor() {
+    this.refreshVisibility(this.router.url);
+
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
-        const shouldShow = this.isClient() && event.urlAfterRedirects.startsWith('/dashboard');
-        this.isVisible.set(shouldShow);
+        this.refreshVisibility(event.urlAfterRedirects);
 
-        if (!shouldShow && this.open()) {
+        if (!this.isVisible() && this.open()) {
           this.open.set(false);
           this.resetChat();
         }
@@ -112,5 +112,21 @@ export class Chatbot {
     this.messages.set([]);
     this.loading.set(false);
     this.messageControl.setValue('');
+  }
+
+  private refreshVisibility(url: string): void {
+    const role = this.authService.getStoredRole();
+    const isEmployee =
+      role === Role.ADMIN ||
+      role === Role.RECEPTIONIST ||
+      role === Role.WARE_HOUSE_WORKER ||
+      role === Role.TECHNICIAN ||
+      role === Role.EMPLOYEE;
+
+    const isClient = !isEmployee;
+    const normalizedUrl = (url || '').split('?')[0].split('#')[0];
+    const isDashboard = normalizedUrl === '/dashboard' || normalizedUrl.startsWith('/dashboard/');
+
+    this.isVisible.set(isClient && isDashboard);
   }
 }
