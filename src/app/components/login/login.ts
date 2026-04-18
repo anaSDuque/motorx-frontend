@@ -16,7 +16,7 @@ import { AboutUs } from '../about-us/about-us';
   styleUrls: ['./login.css'],
 })
 export class Login {
-  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/; 
+  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -88,7 +88,7 @@ export class Login {
         this.loading.set(false);
         if ('token' in res && res.token) {
           this.authService.handleAuthResponse(res);
-          this.navigateByRole(res.role);
+          this.navigateByRole(this.authService.getStoredRole() ?? res.role);
         } else {
           this.needs2FA.set(true);
         }
@@ -100,7 +100,10 @@ export class Login {
     });
   }
 
-  protected onVerify2FA(): void {
+  protected onVerify2FA(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
     if (!/^\d{6}$/.test(this.fullCode())) {
       this.error.set('Ingresa el código de verificación de 6 dígitos');
       return;
@@ -113,7 +116,7 @@ export class Login {
     this.authService.verify2FA({ email: this.emailControl.value.trim().toLowerCase(), code: this.fullCode() }).subscribe({
       next: (res) => {
         this.loading.set(false);
-        this.navigateByRole(res.role);
+        this.navigateByRole(this.authService.getStoredRole() ?? res.role);
       },
       error: (err) => {
         this.loading.set(false);
@@ -165,10 +168,41 @@ export class Login {
   }
 
   private navigateByRole(role: Role | string): void {
-    if (role === Role.ADMIN) {
+    const normalizedRole = this.normalizeRole(role);
+
+    if (normalizedRole === Role.ADMIN) {
       this.router.navigate(['/admin/dashboard']);
+    } else if (normalizedRole === Role.WARE_HOUSE_WORKER) {
+      this.router.navigate(['/warehouse/home']);
+    } else if (normalizedRole === Role.RECEPTIONIST || normalizedRole === Role.EMPLOYEE) {
+      this.router.navigate(['/reception']);
     } else {
       this.router.navigate(['/dashboard']);
     }
+  }
+
+  private normalizeRole(role: Role | string): Role | null {
+    const cleanRole = String(role || '')
+      .trim()
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/^ROLE_/, '')
+      .replace(/[\s-]+/g, '_');
+
+    if (cleanRole === Role.ADMIN) return Role.ADMIN;
+    if (cleanRole === Role.WARE_HOUSE_WORKER || cleanRole === 'WAREHOUSE_WORKER') {
+      return Role.WARE_HOUSE_WORKER;
+    }
+    if (cleanRole === Role.RECEPTIONIST || cleanRole === 'RECEPCIONISTA') {
+      return Role.RECEPTIONIST;
+    }
+    if (cleanRole === Role.TECHNICIAN || cleanRole === 'MECHANIC' || cleanRole === 'MECANICO') {
+      return Role.TECHNICIAN;
+    }
+    if (cleanRole === Role.EMPLOYEE) return Role.EMPLOYEE;
+    if (cleanRole === Role.CLIENT || cleanRole === 'USER') return Role.CLIENT;
+
+    return null;
   }
 }

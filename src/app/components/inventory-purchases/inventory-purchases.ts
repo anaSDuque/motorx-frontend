@@ -1,6 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { InventoryTransactionService } from '../../services/inventory-transaction.service';
 import { SpareService } from '../../services/spare.service';
 import {
@@ -9,20 +15,15 @@ import {
 } from '../../models/inventory.model';
 import { SpareResponseDTO } from '../../models/spare.model';
 
-interface PurchaseFormItem {
-  spareId: number | null;
-  quantity: number;
-  purchasePriceWithVat: number;
-}
-
 @Component({
   selector: 'app-inventory-purchases',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './inventory-purchases.html',
   styleUrl: './inventory-purchases.css',
 })
 export class InventoryPurchases implements OnInit {
+  private readonly fb = inject(FormBuilder);
   private readonly inventoryService = inject(InventoryTransactionService);
   private readonly spareService = inject(SpareService);
 
@@ -32,11 +33,12 @@ export class InventoryPurchases implements OnInit {
   protected readonly purchases = signal<PurchaseTransactionResponseDTO[]>([]);
   protected readonly spares = signal<SpareResponseDTO[]>([]);
 
-  protected readonly notes = signal('');
   protected readonly creating = signal(false);
-  protected readonly items = signal<PurchaseFormItem[]>([
-    { spareId: null, quantity: 1, purchasePriceWithVat: 0 },
-  ]);
+
+  protected readonly purchaseForm = this.fb.group({
+    notes: [''],
+    items: this.fb.array([this.createItemGroup()]),
+  });
 
   ngOnInit(): void {
     this.loadData();
@@ -62,37 +64,39 @@ export class InventoryPurchases implements OnInit {
     });
   }
 
+  protected get items(): FormArray {
+    return this.purchaseForm.controls.items as FormArray;
+  }
+
+  protected getItemGroup(index: number): FormGroup {
+    return this.items.at(index) as FormGroup;
+  }
+
   protected addItem(): void {
-    this.items.update((value) => [
-      ...value,
-      { spareId: null, quantity: 1, purchasePriceWithVat: 0 },
-    ]);
+    this.items.push(this.createItemGroup());
   }
 
   protected removeItem(index: number): void {
-    this.items.update((value) => value.filter((_, i) => i !== index));
-  }
-
-  protected updateItem(index: number, patch: Partial<PurchaseFormItem>): void {
-    this.items.update((value) =>
-      value.map((item, i) => (i === index ? { ...item, ...patch } : item))
-    );
+    if (this.items.length === 1) return;
+    this.items.removeAt(index);
   }
 
   protected createPurchase(): void {
-    const normalizedItems = this.items().filter((item) => item.spareId && item.quantity > 0);
-
-    if (normalizedItems.length === 0) {
-      this.error.set('Agrega al menos un item válido');
+    this.purchaseForm.markAllAsTouched();
+    if (this.purchaseForm.invalid || this.items.length === 0) {
+      this.error.set('Revisa los campos del formulario antes de registrar la compra.');
       return;
     }
 
+    const raw = this.purchaseForm.getRawValue();
+    const normalizedNotes = raw.notes?.trim();
+
     const dto: CreatePurchaseTransactionDTO = {
-      notes: this.notes() || undefined,
-      items: normalizedItems.map((item) => ({
-        spareId: item.spareId!,
-        quantity: item.quantity,
-        purchasePriceWithVat: item.purchasePriceWithVat,
+      notes: normalizedNotes ? normalizedNotes : undefined,
+      items: raw.items.map((item) => ({
+        spareId: Number(item["spareId"]),
+        quantity: item["quantity"],
+        purchasePriceWithVat: item["purchasePriceWithVat"],
       })),
     };
 
@@ -103,14 +107,28 @@ export class InventoryPurchases implements OnInit {
       next: () => {
         this.creating.set(false);
         this.success.set('Compra registrada exitosamente');
-        this.notes.set('');
-        this.items.set([{ spareId: null, quantity: 1, purchasePriceWithVat: 0 }]);
+        this.purchaseForm.reset({ notes: '' });
+        this.items.clear();
+        this.items.push(this.createItemGroup());
         this.loadData();
       },
       error: (err) => {
         this.creating.set(false);
         this.error.set(err.error?.message ?? 'Error al registrar compra');
       },
+    });
+  }
+
+  protected hasError(index: number, controlName: 'spareId' | 'quantity' | 'purchasePriceWithVat', errorName: string): boolean {
+    const control = this.getItemGroup(index).get(controlName);
+    return !!control && control.touched && control.hasError(errorName);
+  }
+
+  private createItemGroup(): FormGroup {
+    return this.fb.group({
+      spareId: [null, [Validators.required]],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
     });
   }
 }

@@ -6,3 +6,8 @@ export * from './employee.model';
 export * from './admin-user.model';
 export * from './error.model';
 export * from './spare.model';
+export * from './inventory.model';
+export * from './reception.model';
+export * from './log.model';
+export * from './metrics.model';
+export * from './notification.model';

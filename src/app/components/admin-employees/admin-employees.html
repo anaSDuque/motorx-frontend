@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3 class="fw-bold mb-0"><i class="bi bi-people me-2"></i>Empleados</h3>
-  <button class="btn btn-primary" (click)="openCreateForm()">
+  <button type="button" class="btn btn-primary" (click)="openCreateForm()">
     <i class="bi bi-plus-lg me-1"></i>Nuevo empleado
   </button>
 </div>
@@ -23,13 +23,13 @@
   <div class="card border-0 mb-4">
     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
       <h5 class="mb-0">{{ editingId() ? 'Editar empleado' : 'Crear nuevo empleado' }}</h5>
-      <button class="btn btn-sm btn-outline-secondary" (click)="cancelForm()"><i class="bi bi-x-lg"></i></button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelForm()"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="card-body">
       @if (formError()) {
         <div class="alert alert-danger py-2">{{ formError() }}</div>
       }
-      <form (ngSubmit)="onSubmit()">
+      <form novalidate (submit)="$event.preventDefault()">
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Cargo</label>
@@ -52,28 +52,113 @@
           @if (!editingId()) {
             <div class="col-md-6">
               <label class="form-label">Nombre completo</label>
-              <input type="text" class="form-control" [formControl]="userNameControl" required minlength="3" />
+              <input type="text" class="form-control" [class.is-invalid]="shouldShowControlError(userNameControl)" [formControl]="userNameControl" required minlength="3" />
+              @if (shouldShowControlError(userNameControl)) {
+                <div class="invalid-feedback">
+                  @if (userNameControl.hasError('required') || userNameControl.hasError('blank')) {
+                    El nombre es obligatorio
+                  } @else if (userNameControl.hasError('minlength')) {
+                    El nombre debe tener al menos 3 caracteres
+                  }
+                </div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label">DNI</label>
-              <input type="text" class="form-control" [formControl]="userDniControl" required inputmode="numeric" pattern="[0-9]*" minlength="6" maxlength="12" />
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="shouldShowControlError(userDniControl)"
+                [formControl]="userDniControl"
+                required
+                inputmode="numeric"
+                pattern="[0-9]*"
+                minlength="6"
+                maxlength="12"
+                (input)="sanitizeDni($any($event.target).value)"
+              />
+              @if (shouldShowControlError(userDniControl)) {
+                <div class="invalid-feedback">
+                  @if (userDniControl.hasError('required')) {
+                    El DNI es obligatorio
+                  } @else if (userDniControl.hasError('pattern')) {
+                    El DNI debe contener solo números (6 a 12 dígitos)
+                  }
+                </div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" [formControl]="userEmailControl" required />
+              <input type="email" class="form-control" [class.is-invalid]="shouldShowControlError(userEmailControl)" [formControl]="userEmailControl" required />
+              @if (shouldShowControlError(userEmailControl)) {
+                <div class="invalid-feedback">
+                  @if (userEmailControl.hasError('required') || userEmailControl.hasError('blank')) {
+                    El correo es obligatorio
+                  } @else if (userEmailControl.hasError('pattern')) {
+                    Ingresa un correo electrónico válido
+                  }
+                </div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label">Contraseña temporal</label>
-              <input type="password" class="form-control" [formControl]="userPasswordControl" required minlength="8" />
+              <div class="input-group">
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-control"
+                  [class.is-invalid]="shouldShowControlError(userPasswordControl)"
+                  [formControl]="userPasswordControl"
+                  required
+                  minlength="8"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  [title]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+                @if (shouldShowControlError(userPasswordControl)) {
+                  <div class="invalid-feedback d-block">
+                    @if (userPasswordControl.hasError('required') || userPasswordControl.hasError('blank')) {
+                      La contraseña es obligatoria
+                    } @else if (userPasswordControl.hasError('pattern')) {
+                      Debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial
+                    }
+                  </div>
+                }
+              </div>
             </div>
             <div class="col-md-6">
               <label class="form-label">Teléfono</label>
-              <input type="tel" class="form-control" [formControl]="userPhoneControl" required inputmode="numeric" pattern="[0-9]*" minlength="7" maxlength="10" />
+              <input
+                type="tel"
+                class="form-control"
+                [class.is-invalid]="shouldShowControlError(userPhoneControl)"
+                [formControl]="userPhoneControl"
+                required
+                inputmode="numeric"
+                pattern="[0-9]*"
+                minlength="7"
+                maxlength="10"
+                (input)="sanitizePhone($any($event.target).value)"
+              />
+              @if (shouldShowControlError(userPhoneControl)) {
+                <div class="invalid-feedback">
+                  @if (userPhoneControl.hasError('required')) {
+                    El teléfono es obligatorio
+                  } @else if (userPhoneControl.hasError('pattern')) {
+                    El teléfono debe contener solo números (7 a 10 dígitos)
+                  }
+                </div>
+              }
             </div>
           }
         </div>
         <div class="mt-3">
-          <button type="submit" class="btn btn-primary me-2" [disabled]="formLoading()">
+          <button type="button" class="btn btn-primary me-2" [disabled]="formLoading()" (click)="onPrimaryAction()">
             @if (formLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             {{ editingId() ? 'Actualizar' : 'Crear' }}
           </button>
@@ -115,10 +200,10 @@
             <td><span class="badge" [class]="getStateBadge(e.state)">{{ getStateLabel(e.state) }}</span></td>
             <td>{{ e.userPhone }}</td>
             <td>
-              <button class="btn btn-sm btn-outline-primary me-1" (click)="openEditForm(e)" title="Editar">
+              <button type="button" class="btn btn-sm btn-outline-primary me-1" (click)="openEditForm(e)" title="Editar">
                 <i class="bi bi-pencil"></i>
               </button>
-              <button class="btn btn-sm btn-outline-danger" (click)="deleteEmployee(e.employeeId)" title="Eliminar">
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteEmployee(e.employeeId)" title="Eliminar">
                 <i class="bi bi-trash"></i>
               </button>
             </td>

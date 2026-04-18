@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, guestGuard, staffGuard } from './guards/auth.guard';
+import {
+  authGuard,
+  adminGuard,
+  guestGuard,
+  warehouseGuard,
+  receptionGuard,
+} from './guards/auth.guard';
 
 export const routes: Routes = [
   /* ── Guest routes (no auth) ── */
@@ -46,9 +52,24 @@ export const routes: Routes = [
     children: [
       /* Client routes */
       {
+        path: 'home',
+        loadComponent: () =>
+          import('./components/role-home-redirect/role-home-redirect').then(
+            (m) => m.RoleHomeRedirect
+          ),
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./components/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'warehouse/home',
+        canActivate: [warehouseGuard],
+        loadComponent: () =>
+          import('./components/warehouse-home/warehouse-home').then(
+            (m) => m.WarehouseHome
+          ),
       },
       {
         path: 'vehicles',
@@ -73,13 +94,13 @@ export const routes: Routes = [
       },
       {
         path: 'spares',
-        canActivate: [staffGuard],
+        canActivate: [warehouseGuard],
         loadComponent: () =>
           import('./components/spare-list/spare-list').then((m) => m.SpareList),
       },
       {
         path: 'inventory/purchases',
-        canActivate: [staffGuard],
+        canActivate: [warehouseGuard],
         loadComponent: () =>
           import('./components/inventory-purchases/inventory-purchases').then(
             (m) => m.InventoryPurchases
@@ -87,7 +108,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventory/sales',
-        canActivate: [staffGuard],
+        canActivate: [receptionGuard],
         loadComponent: () =>
           import('./components/inventory-sales/inventory-sales').then(
             (m) => m.InventorySales
@@ -95,7 +116,7 @@ export const routes: Routes = [
       },
       {
         path: 'reception',
-        canActivate: [staffGuard],
+        canActivate: [receptionGuard],
         loadComponent: () =>
           import('./components/reception/reception').then((m) => m.Reception),
       },
@@ -178,7 +199,7 @@ export const routes: Routes = [
       },
 
       /* Default redirect */
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
 

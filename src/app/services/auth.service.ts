@@ -74,12 +74,23 @@ export class AuthService {
   }
 
   handleAuthResponse(res: AuthResponseDTO): void {
+    if (!res?.token || typeof res.token !== 'string' || res.token.trim().length === 0) {
+      throw new Error('Respuesta de autenticación inválida: token ausente');
+    }
+
+    const normalizedRole = this.normalizeRoleValue(String(res.role));
+    if (!normalizedRole) {
+      throw new Error(`Respuesta de autenticación inválida: rol no soportado (${String(res.role)})`);
+    }
+
     this._token.set(res.token);
+
     if (this.isBrowser) {
       localStorage.setItem('motorx_token', res.token);
-      localStorage.setItem('motorx_role', res.role);
+      localStorage.setItem('motorx_role', normalizedRole);
       localStorage.setItem('motorx_user_name', res.name);
       localStorage.setItem('motorx_user_id', String(res.userId));
+      localStorage.removeItem('motorx_employee_position');
     }
   }
 
@@ -89,7 +100,7 @@ export class AuthService {
 
   getStoredRole(): Role | null {
     if (!this.isBrowser) return null;
-    return (localStorage.getItem('motorx_role') as Role) ?? null;
+    return this.normalizeRoleValue(localStorage.getItem('motorx_role'));
   }
 
   getStoredUserName(): string | null {
@@ -105,7 +116,39 @@ export class AuthService {
       localStorage.removeItem('motorx_role');
       localStorage.removeItem('motorx_user_name');
       localStorage.removeItem('motorx_user_id');
+      localStorage.removeItem('motorx_employee_position');
     }
     this.router.navigate(['/login']);
+  }
+
+  private normalizeRoleValue(rawRole: string | null): Role | null {
+    if (!rawRole) return null;
+
+    const cleanRole = rawRole
+      .trim()
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/^ROLE_/, '')
+      .replace(/[\s-]+/g, '_');
+
+    if (cleanRole === Role.ADMIN) return Role.ADMIN;
+    if (cleanRole === Role.CLIENT || cleanRole === 'USER') return Role.CLIENT;
+
+    if (cleanRole === Role.WARE_HOUSE_WORKER || cleanRole === 'WAREHOUSE_WORKER') {
+      return Role.WARE_HOUSE_WORKER;
+    }
+
+    if (cleanRole === Role.RECEPTIONIST || cleanRole === 'RECEPCIONISTA') {
+      return Role.RECEPTIONIST;
+    }
+
+    if (cleanRole === Role.TECHNICIAN || cleanRole === 'MECHANIC' || cleanRole === 'MECANICO') {
+      return Role.TECHNICIAN;
+    }
+
+    if (cleanRole === Role.EMPLOYEE) return Role.EMPLOYEE;
+
+    return null;
   }
 }

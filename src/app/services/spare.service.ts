@@ -22,6 +22,10 @@ export class SpareService {
     return this.http.get<SpareResponseDTO[]>(this.baseUrl);
   }
 
+  getSparesBelowThreshold(): Observable<SpareResponseDTO[]> {
+    return this.http.get<SpareResponseDTO[]>(`${this.baseUrl}/below-threshold`);
+  }
+
   getSpareById(id: number): Observable<SpareResponseDTO> {
     return this.http.get<SpareResponseDTO>(`${this.baseUrl}/${id}`);
   }
@@ -36,5 +40,9 @@ export class SpareService {
 
   deleteSpare(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  notifyRestock(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/notify-restock`, {});
   }
 }

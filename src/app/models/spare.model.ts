@@ -7,6 +7,7 @@ export interface CreateSpareDTO {
   purchasePriceWithVat: number;
   isOil: boolean;
   warehouseLocation: string;
+  stockThreshold: number;
 }
 
 export interface UpdateSpareDTO {
@@ -18,6 +19,7 @@ export interface UpdateSpareDTO {
   purchasePriceWithVat: number;
   isOil: boolean;
   warehouseLocation: string;
+  stockThreshold: number;
 }
 
 export interface UpdateSparePurchasePriceDTO {
@@ -35,6 +37,7 @@ export interface SpareResponseDTO {
   salePrice: number;
   isOil: boolean;
   warehouseLocation: string;
+  stockThreshold: number;
   createdAt: string;
   updatedAt: string;
 }
