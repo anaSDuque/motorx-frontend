@@ -22,6 +22,12 @@
 </div>
 
 <!-- Top-level error alert removed (using contextual alerts near each step instead) -->
+@if (success()) {
+  <div class="alert alert-success mb-4 d-flex align-items-center" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+  </div>
+}
+
 @if (error()) {
   <div class="alert alert-danger mb-4">
     <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
@@ -168,13 +174,13 @@
           <label class="form-label">Kilometraje actual</label>
           <div class="input-group">
             <input type="number" class="form-control" min="0"
-              [formControl]="currentMileageControl" (blur)="currentMileageTouched.set(true)"
+              [formControl]="currentMileageControl" (input)="sanitizeMileageInput($any($event.target).value)" (blur)="currentMileageTouched.set(true)"
               required step="1"
-              [class.is-invalid]="currentMileageTouched() && (!currentMileage() || currentMileage() <= 0)" />
+              [class.is-invalid]="currentMileageTouched() && isCurrentMileageInvalid()" />
             <span class="input-group-text">km</span>
           </div>
-          @if (currentMileageTouched() && (!currentMileage() || currentMileage() <= 0)) {
-            <div class="text-danger small mt-1">El kilometraje debe ser mayor a 0</div>
+          @if (currentMileageTouched() && isCurrentMileageInvalid()) {
+            <div class="text-danger small mt-1">El kilometraje debe ser mayor o igual a 0</div>
           }
         </div>
       </div>

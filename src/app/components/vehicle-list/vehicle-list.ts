@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserVehicleService } from '../../services/user-vehicle.service';
 import { VehicleResponseDTO, CreateVehicleRequestDTO, UpdateVehicleRequestDTO } from '../../models';
 
@@ -11,6 +11,8 @@ import { VehicleResponseDTO, CreateVehicleRequestDTO, UpdateVehicleRequestDTO } 
   styleUrls: ['./vehicle-list.css'],
 })
 export class VehicleList implements OnInit {
+    private static readonly PLATE_REGEX = /^[A-Z]{3}[0-9]{2}[A-Z]$/;
+
   private readonly vehicleService = inject(UserVehicleService);
 
   protected readonly vehicles = signal<VehicleResponseDTO[]>([]);
@@ -33,18 +35,38 @@ export class VehicleList implements OnInit {
   protected readonly cylinderCapacity = signal<number>(150);
   protected readonly chassisNumber = signal('');
 
-  protected readonly brandControl = new FormControl('', { nonNullable: true });
-  protected readonly modelControl = new FormControl('', { nonNullable: true });
-  protected readonly yearControl = new FormControl(2024, { nonNullable: true });
-  protected readonly plateControl = new FormControl('', { nonNullable: true });
-  protected readonly ccControl = new FormControl(150, { nonNullable: true });
-  protected readonly chassisControl = new FormControl('', { nonNullable: true });
+  protected readonly brandControl = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] });
+  protected readonly modelControl = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] });
+  protected readonly yearControl = new FormControl(2024, { nonNullable: true, validators: [Validators.required, Validators.min(1950), Validators.max(new Date().getFullYear())] });
+  protected readonly plateControl = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(VehicleList.PLATE_REGEX)] });
+  protected readonly ccControl = new FormControl(150, { nonNullable: true, validators: [Validators.required, Validators.min(1), Validators.max(9999)] });
+  protected readonly chassisControl = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(120)] });
+  protected readonly vehicleForm = new FormGroup({
+    brand: this.brandControl,
+    model: this.modelControl,
+    yearOfManufacture: this.yearControl,
+    licensePlate: this.plateControl,
+    cylinderCapacity: this.ccControl,
+    chassisNumber: this.chassisControl,
+  });
 
   constructor() {
     this.brandControl.valueChanges.subscribe((value) => this.brand.set(value));
     this.modelControl.valueChanges.subscribe((value) => this.model.set(value));
-    this.yearControl.valueChanges.subscribe((value) => this.yearOfManufacture.set(Number(value)));
-    this.ccControl.valueChanges.subscribe((value) => this.cylinderCapacity.set(Number(value)));
+    this.yearControl.valueChanges.subscribe((value) => {
+      const normalized = this.normalizeInteger(value, 1950, new Date().getFullYear());
+      if (normalized !== value) {
+        this.yearControl.setValue(normalized, { emitEvent: false });
+      }
+      this.yearOfManufacture.set(normalized);
+    });
+    this.ccControl.valueChanges.subscribe((value) => {
+      const normalized = this.normalizeInteger(value, 1, 9999);
+      if (normalized !== value) {
+        this.ccControl.setValue(normalized, { emitEvent: false });
+      }
+      this.cylinderCapacity.set(normalized);
+    });
     this.chassisControl.valueChanges.subscribe((value) => this.chassisNumber.set(value));
     this.plateControl.valueChanges.subscribe((value) => {
       const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
@@ -101,15 +123,33 @@ export class VehicleList implements OnInit {
   }
 
   protected onSubmit(): void {
+    this.brandControl.markAsTouched();
+    this.modelControl.markAsTouched();
+    this.ccControl.markAsTouched();
+    if (!this.editingId()) {
+      this.yearControl.markAsTouched();
+      this.plateControl.markAsTouched();
+      this.chassisControl.markAsTouched();
+    }
+
+    if (this.hasInvalidVehicleForm()) {
+      this.formError.set('Completa correctamente los campos del formulario.');
+      return;
+    }
+
     this.formLoading.set(true);
     this.formError.set('');
     this.fieldErrors.set({});
 
+    const normalizedBrand = this.brand().trim();
+    const normalizedModel = this.model().trim();
+    const normalizedCc = this.normalizeInteger(this.cylinderCapacity(), 1, 9999);
+
     if (this.editingId()) {
       const dto: UpdateVehicleRequestDTO = {
-        brand: this.brand(),
-        model: this.model(),
-        cylinderCapacity: this.cylinderCapacity(),
+        brand: normalizedBrand,
+        model: normalizedModel,
+        cylinderCapacity: normalizedCc,
       };
       this.vehicleService.updateVehicle(this.editingId()!, dto).subscribe({
         next: () => {
@@ -121,13 +161,17 @@ export class VehicleList implements OnInit {
         error: (err) => this.handleFormError(err),
       });
     } else {
+      const normalizedYear = this.normalizeInteger(this.yearOfManufacture(), 1950, new Date().getFullYear());
+      const normalizedPlate = this.licensePlate().trim().toUpperCase();
+      const normalizedChassis = this.chassisNumber().trim();
+
       const dto: CreateVehicleRequestDTO = {
-        brand: this.brand(),
-        model: this.model(),
-        yearOfManufacture: this.yearOfManufacture(),
-        licensePlate: this.licensePlate(),
-        cylinderCapacity: this.cylinderCapacity(),
-        chassisNumber: this.chassisNumber(),
+        brand: normalizedBrand,
+        model: normalizedModel,
+        yearOfManufacture: normalizedYear,
+        licensePlate: normalizedPlate,
+        cylinderCapacity: normalizedCc,
+        chassisNumber: normalizedChassis,
       };
       this.vehicleService.createVehicle(dto).subscribe({
         next: () => {
@@ -155,7 +199,62 @@ export class VehicleList implements OnInit {
   private handleFormError(err: any): void {
     this.formLoading.set(false);
     if (err.error?.details) this.fieldErrors.set(err.error.details);
-    this.formError.set(err.error?.message ?? 'Error al guardar');
+    this.formError.set(this.extractApiErrorMessage(err, 'Error al guardar'));
+  }
+
+  protected hasInvalidVehicleForm(): boolean {
+    if (this.editingId()) {
+      return this.brandControl.invalid || this.modelControl.invalid || this.ccControl.invalid;
+    }
+    return (
+      this.brandControl.invalid ||
+      this.modelControl.invalid ||
+      this.yearControl.invalid ||
+      this.plateControl.invalid ||
+      this.ccControl.invalid ||
+      this.chassisControl.invalid
+    );
+  }
+
+  protected sanitizeYearInput(value: string): void {
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    if (!digits) {
+      this.yearControl.setValue(1950);
+      return;
+    }
+    this.yearControl.setValue(this.normalizeInteger(Number(digits), 1950, new Date().getFullYear()));
+  }
+
+  protected sanitizeCcInput(value: string): void {
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    if (!digits) {
+      this.ccControl.setValue(1);
+      return;
+    }
+    this.ccControl.setValue(this.normalizeInteger(Number(digits), 1, 9999));
+  }
+
+  private normalizeInteger(value: unknown, min: number, max: number): number {
+    const numeric = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(numeric) || Number.isNaN(numeric)) return min;
+    return Math.max(min, Math.min(max, Math.trunc(numeric)));
+  }
+
+  private extractApiErrorMessage(err: any, fallback: string): string {
+    const backend = err?.error;
+    const message = typeof backend?.message === 'string' ? backend.message.trim() : '';
+
+    if (backend?.details && typeof backend.details === 'object') {
+      const details = Object.values(backend.details as Record<string, unknown>)
+        .map((value) => String(value).trim())
+        .filter((value) => value.length > 0)
+        .join(', ');
+      if (message && details) return `${message}: ${details}`;
+      if (details) return details;
+    }
+
+    if (message) return message;
+    return fallback;
   }
 
   private resetForm(): void {

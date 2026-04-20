@@ -64,7 +64,42 @@ export class AdminUsers implements OnInit {
   }
 
   protected getRoleBadge(role: string): string {
-    const map: Record<string, string> = { CLIENT: 'bg-info', EMPLOYEE: 'bg-warning', ADMIN: 'bg-danger' };
-    return map[role] ?? 'bg-secondary';
+    const normalized = this.normalizeRole(role);
+    const map: Record<string, string> = {
+      CLIENT: 'bg-info',
+      EMPLOYEE: 'bg-warning text-dark',
+      ADMIN: 'bg-danger',
+      TECHNICIAN: 'bg-primary',
+      RECEPTIONIST: 'bg-success',
+      WARE_HOUSE_WORKER: 'bg-secondary',
+    };
+    return map[normalized] ?? 'bg-secondary';
+  }
+
+  protected getRoleLabel(role: string): string {
+    const normalized = this.normalizeRole(role);
+    const labels: Record<string, string> = {
+      CLIENT: 'Cliente',
+      EMPLOYEE: 'Empleado',
+      ADMIN: 'Administrador',
+      TECHNICIAN: 'Técnico',
+      RECEPTIONIST: 'Recepcionista',
+      WARE_HOUSE_WORKER: 'T. de Bodega',
+    };
+    return labels[normalized] ?? role;
+  }
+
+  private normalizeRole(role: string): string {
+    const clean = String(role ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_')
+      .replace(/-/g, '_');
+
+    if (clean === 'WAREHOUSE_WORKER') {
+      return 'WARE_HOUSE_WORKER';
+    }
+
+    return clean;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, inject, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -55,6 +55,7 @@ export class Register {
   protected readonly captchaSolved = signal(false);
   protected readonly showDataTreatmentModal = signal(false);
   protected readonly showAboutUsModal = signal(false);
+  @ViewChild(MathCaptcha) private captchaComponent?: MathCaptcha;
 
   constructor() {
     this.dniControl.valueChanges.subscribe((value) => {
@@ -97,20 +98,46 @@ export class Register {
     this.showConfirmPassword.update((v) => !v);
   }
 
-  // Password validation
-  protected readonly pwdHasUppercase = computed(() => /[A-Z]/.test(this.passwordControl.value));
-  protected readonly pwdHasNumber = computed(() => /[0-9]/.test(this.passwordControl.value));
-  protected readonly pwdHasSpecial = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.passwordControl.value));
-  protected readonly pwdHasMinLength = computed(() => this.passwordControl.value.length >= 8);
-  protected readonly pwdValid = computed(
-    () => this.pwdHasUppercase() && this.pwdHasNumber() && this.pwdHasSpecial() && this.pwdHasMinLength()
-  );
-  protected readonly passwordsMatch = computed(
-    () => this.passwordControl.value === this.confirmPasswordControl.value && this.confirmPasswordControl.value.length > 0
-  );
-  protected readonly dniValid = computed(() => Register.DNI_REGEX.test(this.dniControl.value));
-  protected readonly emailValid = computed(() => Register.EMAIL_REGEX.test(this.emailControl.value));
-  protected readonly phoneValid = computed(() => Register.PHONE_REGEX.test(this.phoneControl.value));
+  protected hasInteracted(control: AbstractControl | null): boolean {
+    return !!control && (control.touched || control.dirty);
+  }
+
+  // Password validation (evaluated on each change detection cycle)
+  protected pwdHasUppercase(): boolean {
+    return /[A-Z]/.test(this.passwordControl.value);
+  }
+
+  protected pwdHasNumber(): boolean {
+    return /[0-9]/.test(this.passwordControl.value);
+  }
+
+  protected pwdHasSpecial(): boolean {
+    return /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.passwordControl.value);
+  }
+
+  protected pwdHasMinLength(): boolean {
+    return this.passwordControl.value.length >= 8;
+  }
+
+  protected pwdValid(): boolean {
+    return this.pwdHasUppercase() && this.pwdHasNumber() && this.pwdHasSpecial() && this.pwdHasMinLength();
+  }
+
+  protected passwordsMatch(): boolean {
+    return this.passwordControl.value === this.confirmPasswordControl.value && this.confirmPasswordControl.value.length > 0;
+  }
+
+  protected dniValid(): boolean {
+    return Register.DNI_REGEX.test(this.dniControl.value);
+  }
+
+  protected emailValid(): boolean {
+    return Register.EMAIL_REGEX.test(this.emailControl.value);
+  }
+
+  protected phoneValid(): boolean {
+    return Register.PHONE_REGEX.test(this.phoneControl.value);
+  }
 
   protected get nameControl(): FormControl<string> {
     return this.registerForm.controls.name;
@@ -148,6 +175,11 @@ export class Register {
     this.phoneControl.setValue(value.replace(/\D/g, '').slice(0, 10), { emitEvent: false });
   }
 
+  private refreshCaptcha(): void {
+    this.captchaSolved.set(false);
+    this.captchaComponent?.generateChallenge();
+  }
+
   protected onRegister(): void {
     this.registerForm.markAllAsTouched();
 
@@ -182,7 +214,7 @@ export class Register {
       return;
     }
     if (!this.passwordsMatch()) {
-      this.error.set('Las contraseñas no coinciden');
+      this.error.set('Las contraseñas deben ser iguales');
       return;
     }
 
@@ -193,6 +225,7 @@ export class Register {
     if (!this.acceptDataTreatmentControl.value) {
       this.error.set('Debe aceptar el tratamiento de sus datos para continuar.');
       this.loading.set(false);
+      this.refreshCaptcha();
       return;
     }
     const fullPhone = '+57' + normalizedPhone;
@@ -208,10 +241,12 @@ export class Register {
       .subscribe({
         next: () => {
           this.loading.set(false);
+          this.refreshCaptcha();
           this.router.navigate(['/dashboard']);
         },
         error: (err) => {
           this.loading.set(false);
+          this.refreshCaptcha();
           if (err.error?.details) {
             this.fieldErrors.set(err.error.details);
           }

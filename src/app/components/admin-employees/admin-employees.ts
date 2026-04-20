@@ -15,6 +15,7 @@ import {
   UpdateEmployeeRequestDTO,
   EmployeePosition,
   EmployeeState,
+  EMPLOYEE_POSITION_LABELS,
 } from '../../models';
 
 @Component({
@@ -328,6 +329,10 @@ export class AdminEmployees implements OnInit {
 
   protected getStateBadge(state: string): string {
     return state === 'AVAILABLE' ? 'bg-success' : 'bg-secondary';
+  }
+
+  protected getPositionLabel(position: EmployeePosition): string {
+    return EMPLOYEE_POSITION_LABELS[position] ?? position;
   }
 
   private extractApiErrorMessage(error: HttpErrorResponse, fallback: string): string {

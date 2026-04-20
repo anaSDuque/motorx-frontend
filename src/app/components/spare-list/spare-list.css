@@ -1,1 +1,18 @@
 /* spare-list styles */
+
+.warehouse-chip-row {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.warehouse-chip {
+	width: 3.5rem;
+	text-align: center;
+	font-weight: 600;
+}
+
+.warehouse-separator {
+	font-weight: 700;
+	color: #6c757d;
+}

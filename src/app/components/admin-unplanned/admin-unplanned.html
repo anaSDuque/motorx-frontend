@@ -1,5 +1,5 @@
 <div class="container py-4">
-  <h2 class="mb-4"><i class="bi bi-exclamation-triangle"></i> Cita Imprevista</h2>
+  <h2 class="mb-4"><i class="bi bi-exclamation-triangle"></i> {{ t('adminUnplanned.title') }}</h2>
 
   @if (success()) {
     <div class="alert alert-success">{{ success() }}</div>
@@ -72,23 +72,28 @@
           <div class="col-md-6">
             <label class="form-label" for="startTime">Hora de inicio</label>
             <input type="time" id="startTime" class="form-control"
+              min="07:00" max="17:30"
               [formControl]="startTimeControl" required
-              (blur)="timeTouched.set(true)"
-              [class.is-invalid]="timeTouched() && !startTime()" />
+              (blur)="timeTouched.set(true); businessHoursTouched.set(true)"
+              [class.is-invalid]="(timeTouched() && !startTime()) || (businessHoursTouched() && isBusinessHoursInvalid(appointmentDate(), startTime()))" />
             @if (timeTouched() && !startTime()) {
               <div class="invalid-feedback">La hora es obligatoria</div>
+            } @else if (businessHoursTouched() && isBusinessHoursInvalid(appointmentDate(), startTime())) {
+              <div class="invalid-feedback">{{ t('adminUnplanned.businessHoursError') }}</div>
             }
+            <div class="form-text">{{ t('adminUnplanned.businessHoursHint') }}</div>
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label" for="currentMileage">Kilometraje actual</label>
           <input type="number" id="currentMileage" class="form-control"
+            min="1" step="1"
             [formControl]="currentMileageControl" placeholder="Ej: 15000" required
             (blur)="mileageTouched.set(true)"
-            [class.is-invalid]="mileageTouched() && !currentMileage()" />
-          @if (mileageTouched() && !currentMileage()) {
-            <div class="invalid-feedback">El kilometraje es obligatorio</div>
+            [class.is-invalid]="mileageTouched() && isMileageInvalid()" />
+          @if (mileageTouched() && isMileageInvalid()) {
+            <div class="invalid-feedback">{{ t('adminUnplanned.mileageError') }}</div>
           }
         </div>
 
@@ -97,7 +102,7 @@
           <select id="technicianId" class="form-select" [formControl]="technicianIdControl">
             <option [ngValue]="null">Sin asignar</option>
             @for (e of employees(); track e.employeeId) {
-              <option [ngValue]="e.employeeId">{{ e.userName }} - {{ e.position }}</option>
+              <option [ngValue]="e.employeeId">{{ e.userName }} - {{ t('adminUnplanned.technicianLabel') }}</option>
             }
           </select>
         </div>

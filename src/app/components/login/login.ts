@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -37,6 +37,12 @@ export class Login {
   protected readonly captchaSolved = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly showAboutUsModal = signal(false);
+  @ViewChild(MathCaptcha) private captchaComponent?: MathCaptcha;
+
+  private refreshCaptcha(): void {
+    this.captchaSolved.set(false);
+    this.captchaComponent?.generateChallenge();
+  }
 
   protected openAboutUsModal(): void {
     this.showAboutUsModal.set(true);
@@ -95,6 +101,7 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
+        this.refreshCaptcha();
         this.error.set(this.notificationService.handleHttpError(err));
       },
     });

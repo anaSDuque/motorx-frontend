@@ -67,11 +67,11 @@
             </span>
             <input type="text" class="form-control border-start-0 ps-1" id="name"
               [placeholder]="'register.namePlaceholder' | translate" formControlName="name" required minlength="3"
-              [class.is-invalid]="fieldErrors()['name'] || (nameControl.touched && !nameControl.value.trim())" />
+              [class.is-invalid]="fieldErrors()['name'] || (hasInteracted(nameControl) && !nameControl.value.trim())" />
           </div>
           @if (fieldErrors()['name']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['name'] }}</div>
-          } @else if (nameControl.touched && !nameControl.value.trim()) {
+          } @else if (hasInteracted(nameControl) && !nameControl.value.trim()) {
           <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
         </div>
@@ -86,13 +86,13 @@
               [placeholder]="'register.dniPlaceholder' | translate" formControlName="dni"
               (input)="sanitizeDni($any($event.target).value)"
               required inputmode="numeric" pattern="[0-9]*" minlength="6" maxlength="12"
-              [class.is-invalid]="fieldErrors()['dni'] || (dniControl.touched && (!dniControl.value.trim() || !dniValid()))" />
+              [class.is-invalid]="fieldErrors()['dni'] || (hasInteracted(dniControl) && (!dniControl.value.trim() || !dniValid()))" />
           </div>
           @if (fieldErrors()['dni']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['dni'] }}</div>
-          } @else if (dniControl.touched && !dniControl.value.trim()) {
+          } @else if (hasInteracted(dniControl) && !dniControl.value.trim()) {
           <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
-          } @else if (dniControl.touched && dniControl.value.trim() && !dniValid()) {
+          } @else if (hasInteracted(dniControl) && dniControl.value.trim() && !dniValid()) {
           <div class="text-danger extra-small mt-1 ps-2">Solo números (6 a 12 dígitos)</div>
           }
         </div>
@@ -105,13 +105,13 @@
             </span>
             <input type="email" class="form-control border-start-0 ps-1" id="email"
               [placeholder]="'register.emailPlaceholder' | translate" formControlName="email" required
-              [class.is-invalid]="fieldErrors()['email'] || (emailControl.touched && (!emailControl.value.trim() || !emailValid()))" />
+              [class.is-invalid]="fieldErrors()['email'] || (hasInteracted(emailControl) && (!emailControl.value.trim() || !emailValid()))" />
           </div>
           @if (fieldErrors()['email']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['email'] }}</div>
-          } @else if (emailControl.touched && !emailControl.value.trim()) {
+          } @else if (hasInteracted(emailControl) && !emailControl.value.trim()) {
           <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
-          } @else if (emailControl.touched && emailControl.value.trim() && !emailValid()) {
+          } @else if (hasInteracted(emailControl) && emailControl.value.trim() && !emailValid()) {
           <div class="text-danger extra-small mt-1 ps-2">Correo electrónico inválido</div>
           }
         </div>
@@ -126,13 +126,13 @@
               [placeholder]="'register.phonePlaceholder' | translate" formControlName="phone"
               (input)="sanitizePhone($any($event.target).value)" required inputmode="numeric"
               pattern="[0-9]*" minlength="7" maxlength="10"
-              [class.is-invalid]="fieldErrors()['phone'] || (phoneControl.touched && (!phoneControl.value.trim() || !phoneValid()))" />
+              [class.is-invalid]="fieldErrors()['phone'] || (hasInteracted(phoneControl) && (!phoneControl.value.trim() || !phoneValid()))" />
           </div>
           @if (fieldErrors()['phone']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['phone'] }}</div>
-          } @else if (phoneControl.touched && !phoneControl.value.trim()) {
+          } @else if (hasInteracted(phoneControl) && !phoneControl.value.trim()) {
           <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
-          } @else if (phoneControl.touched && phoneControl.value.trim() && !phoneValid()) {
+          } @else if (hasInteracted(phoneControl) && phoneControl.value.trim() && !phoneValid()) {
           <div class="text-danger extra-small mt-1 ps-2">Solo números (7 a 10 dígitos)</div>
           }
         </div>
@@ -144,7 +144,7 @@
               <i class="bi bi-lock text-muted"></i>
             </span>
             <input [type]="showPassword() ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-1"
-              id="password" placeholder="********" formControlName="password" required [class.is-invalid]="fieldErrors()['password'] || (passwordControl.touched && !passwordControl.value)" />
+              id="password" placeholder="********" formControlName="password" required [class.is-invalid]="fieldErrors()['password'] || (hasInteracted(passwordControl) && !passwordControl.value)" />
             <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted"
               [class.border-danger]="fieldErrors()['password']" type="button" (click)="toggleShowPassword()"
               tabindex="-1">
@@ -153,26 +153,26 @@
           </div>
           @if (fieldErrors()['password']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['password'] }}</div>
-          } @else if (passwordControl.touched && !passwordControl.value) {
+          } @else if (hasInteracted(passwordControl) && !passwordControl.value) {
           <div class="text-danger extra-small mt-1 ps-2">Este campo es obligatorio</div>
           }
 
           <!-- Password rules feedback: only show after the password field was touched and it's not yet valid -->
-          @if (passwordControl.touched && !pwdValid()) {
+          @if (hasInteracted(passwordControl) && !pwdValid()) {
           <div class="mt-2 ps-2 small">
-            <div [class.text-success]="pwdHasUppercase()" [class.text-danger]="passwordControl.touched && !pwdHasUppercase()" [class.text-muted]="!passwordControl.touched && !pwdHasUppercase()">
+            <div [class.text-success]="pwdHasUppercase()" [class.text-danger]="hasInteracted(passwordControl) && !pwdHasUppercase()" [class.text-muted]="!hasInteracted(passwordControl) && !pwdHasUppercase()">
               <i class="bi" [class.bi-check2-circle]="pwdHasUppercase()" [class.bi-dash-circle]="!pwdHasUppercase()"></i>
               Contiene al menos una letra mayúscula
             </div>
-            <div [class.text-success]="pwdHasNumber()" [class.text-danger]="passwordControl.touched && !pwdHasNumber()" [class.text-muted]="!passwordControl.touched && !pwdHasNumber()">
+            <div [class.text-success]="pwdHasNumber()" [class.text-danger]="hasInteracted(passwordControl) && !pwdHasNumber()" [class.text-muted]="!hasInteracted(passwordControl) && !pwdHasNumber()">
               <i class="bi" [class.bi-check2-circle]="pwdHasNumber()" [class.bi-dash-circle]="!pwdHasNumber()"></i>
               Contiene al menos un número
             </div>
-            <div [class.text-success]="pwdHasSpecial()" [class.text-danger]="passwordControl.touched && !pwdHasSpecial()" [class.text-muted]="!passwordControl.touched && !pwdHasSpecial()">
+            <div [class.text-success]="pwdHasSpecial()" [class.text-danger]="hasInteracted(passwordControl) && !pwdHasSpecial()" [class.text-muted]="!hasInteracted(passwordControl) && !pwdHasSpecial()">
               <i class="bi" [class.bi-check2-circle]="pwdHasSpecial()" [class.bi-dash-circle]="!pwdHasSpecial()"></i>
               Contiene al menos un carácter especial
             </div>
-            <div [class.text-success]="pwdHasMinLength()" [class.text-danger]="passwordControl.touched && !pwdHasMinLength()" [class.text-muted]="!passwordControl.touched && !pwdHasMinLength()">
+            <div [class.text-success]="pwdHasMinLength()" [class.text-danger]="hasInteracted(passwordControl) && !pwdHasMinLength()" [class.text-muted]="!hasInteracted(passwordControl) && !pwdHasMinLength()">
               <i class="bi" [class.bi-check2-circle]="pwdHasMinLength()" [class.bi-dash-circle]="!pwdHasMinLength()"></i>
               Mínimo 8 caracteres
             </div>
@@ -188,14 +188,14 @@
             </span>
             <input [type]="showConfirmPassword() ? 'text' : 'password'" class="form-control border-start-0 ps-1"
               id="confirmPassword" placeholder="********" formControlName="confirmPassword" required
-              [class.is-invalid]="(confirmPasswordControl.touched && !passwordsMatch()) || fieldErrors()['confirmPassword']" />
+              [class.is-invalid]="(hasInteracted(confirmPasswordControl) && !passwordsMatch()) || fieldErrors()['confirmPassword']" />
             <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button"
               (click)="toggleShowConfirmPassword()" tabindex="-1">
               <i class="bi" [class.bi-eye]="!showConfirmPassword()" [class.bi-eye-slash]="showConfirmPassword()"></i>
             </button>
           </div>
-          @if (confirmPasswordControl.touched && !passwordsMatch()) {
-          <div class="text-danger extra-small mt-1 ps-2">Las contraseñas no coinciden</div>
+          @if (hasInteracted(confirmPasswordControl) && !passwordsMatch()) {
+          <div class="text-danger extra-small mt-1 ps-2">Las contraseñas deben ser iguales</div>
           } @else if (fieldErrors()['confirmPassword']) {
           <div class="text-danger extra-small mt-1 ps-2">{{ fieldErrors()['confirmPassword'] }}</div>
           }

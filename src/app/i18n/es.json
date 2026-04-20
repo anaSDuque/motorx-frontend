@@ -129,6 +129,13 @@
         "emptySubtitle": "Pregúntame sobre citas, motos o servicios del taller.",
         "limit": "Máximo 250 caracteres por mensaje"
     },
+    "adminUnplanned": {
+        "title": "Cita imprevista",
+        "businessHoursHint": "Horario permitido: 07:00 a 17:30 (sin citas de 12:00 a 13:00).",
+        "businessHoursError": "Horario inválido: lunes a viernes, entre 07:00 y 17:30, y no se agenda de 12:00 a 13:00.",
+        "mileageError": "El kilometraje debe ser un número entero mayor a 0",
+        "technicianLabel": "Técnico"
+    },
     "common": {
         "loading": "Cargando...",
         "error": "Ha ocurrido un error",

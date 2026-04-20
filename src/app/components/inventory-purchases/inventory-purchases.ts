@@ -47,6 +47,8 @@ export class InventoryPurchases implements OnInit {
     savCode: ['', [Validators.required, Validators.maxLength(100)]],
     spareCode: ['', [Validators.required, Validators.maxLength(100)]],
     name: ['', [Validators.required, Validators.maxLength(150)]],
+    supplier: ['', [Validators.required, Validators.maxLength(150)]],
+    compatibleMotorcycles: ['', [Validators.required, Validators.maxLength(500)]],
     description: ['', [Validators.maxLength(500)]],
     quantity: [0, [Validators.required, Validators.min(0)]],
     purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
@@ -161,6 +163,8 @@ export class InventoryPurchases implements OnInit {
       savCode: raw.savCode.trim(),
       spareCode: raw.spareCode.trim(),
       name: raw.name.trim(),
+      supplier: raw.supplier.trim(),
+      compatibleMotorcycles: raw.compatibleMotorcycles.trim(),
       description: raw.description.trim(),
       quantity: raw.quantity,
       purchasePriceWithVat: raw.purchasePriceWithVat,
@@ -169,21 +173,29 @@ export class InventoryPurchases implements OnInit {
       stockThreshold: raw.stockThreshold,
     };
 
-    if (!normalized.savCode || !normalized.spareCode || !normalized.name || !normalized.warehouseLocation) {
+    if (
+      !normalized.savCode ||
+      !normalized.spareCode ||
+      !normalized.name ||
+      !normalized.supplier ||
+      !normalized.compatibleMotorcycles ||
+      !normalized.warehouseLocation
+    ) {
       this.spareFormError.set('No se permiten campos en blanco.');
       return;
     }
 
     const dto: CreateSpareDTO = {
+      name: normalized.name,
+      compatibleMotorcycles: normalized.compatibleMotorcycles,
       savCode: normalized.savCode,
       spareCode: normalized.spareCode,
-      name: normalized.name,
-      description: normalized.description || undefined,
+      supplier: normalized.supplier,
       quantity: normalized.quantity,
       purchasePriceWithVat: normalized.purchasePriceWithVat,
       isOil: normalized.isOil,
-      warehouseLocation: normalized.warehouseLocation,
       stockThreshold: normalized.stockThreshold,
+      warehouseLocation: normalized.warehouseLocation,
     };
 
     this.creatingSpare.set(true);
@@ -234,6 +246,8 @@ export class InventoryPurchases implements OnInit {
       savCode: '',
       spareCode: '',
       name: '',
+      supplier: '',
+      compatibleMotorcycles: '',
       description: '',
       quantity: 0,
       purchasePriceWithVat: 0,

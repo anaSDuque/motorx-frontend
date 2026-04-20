@@ -61,7 +61,7 @@ export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
 export const EMPLOYEE_POSITION_LABELS: Record<EmployeePosition, string> = {
   [EmployeePosition.RECEPCIONISTA]: 'Recepcionista',
   [EmployeePosition.MECANICO]: 'Mecánico',
-  [EmployeePosition.WAREHOUSE_WORKER]: 'Bodega',
+  [EmployeePosition.WAREHOUSE_WORKER]: 'T. de Bodega',
 };
 
 export const EMPLOYEE_STATE_LABELS: Record<EmployeeState, string> = {

@@ -129,6 +129,13 @@
         "emptySubtitle": "Ask me about appointments, bikes, or workshop services.",
         "limit": "Maximum 250 characters per message"
     },
+    "adminUnplanned": {
+        "title": "Unplanned appointment",
+        "businessHoursHint": "Allowed hours: 07:00 to 17:30 (no appointments from 12:00 to 13:00).",
+        "businessHoursError": "Invalid schedule: Monday to Friday, between 07:00 and 17:30, and no appointments from 12:00 to 13:00.",
+        "mileageError": "Mileage must be an integer greater than 0",
+        "technicianLabel": "Technician"
+    },
     "common": {
         "loading": "Loading...",
         "error": "An error occurred",

@@ -31,7 +31,7 @@
     @if (formError()) {
     <div class="alert alert-danger py-2">{{ formError() }}</div>
     }
-    <form (ngSubmit)="onSubmit()">
+    <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()">
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">Marca</label>
@@ -49,9 +49,13 @@
         <div class="col-md-4">
           <label class="form-label">Año de fabricación</label>
           <input type="number" class="form-control" [formControl]="yearControl" required min="1950" max="2026"
+            inputmode="numeric" step="1" (input)="sanitizeYearInput($any($event.target).value)"
             [class.is-invalid]="fieldErrors()['yearOfManufacture']" />
           @if (fieldErrors()['yearOfManufacture']) { <div class="invalid-feedback">{{ fieldErrors()['yearOfManufacture']
             }}</div> }
+          @if (!fieldErrors()['yearOfManufacture'] && yearControl.invalid && (yearControl.touched || yearControl.dirty)) {
+          <div class="invalid-feedback d-block">Ingrese un año válido (1950 a {{ 2026 }}), solo números.</div>
+          }
         </div>
         <div class="col-md-4">
           <label class="form-label">Placa (AAA00A)</label>
@@ -68,9 +72,13 @@
         <div class="col-md-4">
           <label class="form-label">Cilindraje (cc)</label>
           <input type="number" class="form-control" [formControl]="ccControl" required min="50" max="9999"
+            inputmode="numeric" step="1" (input)="sanitizeCcInput($any($event.target).value)"
             [class.is-invalid]="fieldErrors()['cylinderCapacity']" />
           @if (fieldErrors()['cylinderCapacity']) { <div class="invalid-feedback">{{ fieldErrors()['cylinderCapacity']
             }}</div> }
+          @if (!fieldErrors()['cylinderCapacity'] && ccControl.invalid && (ccControl.touched || ccControl.dirty)) {
+          <div class="invalid-feedback d-block">Ingrese un cilindraje válido (solo números positivos).</div>
+          }
         </div>
         @if (!editingId()) {
         <div class="col-md-12">
@@ -84,7 +92,7 @@
         }
       </div>
       <div class="mt-3">
-        <button type="submit" class="btn btn-primary me-2" [disabled]="formLoading()">
+        <button type="submit" class="btn btn-primary me-2" [disabled]="formLoading() || hasInvalidVehicleForm()">
           @if (formLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
           {{ editingId() ? 'Actualizar' : 'Registrar' }}
         </button>

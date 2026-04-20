@@ -20,6 +20,7 @@ export class MathCaptcha {
     userAnswer = signal<number | null>(null);
     protected readonly userAnswerControl = new FormControl<number | string | null>(null);
     isSolved = signal<boolean | null>(null);
+    private lastChallengeKey = '';
 
     constructor() {
       this.userAnswerControl.valueChanges.subscribe((value) => {
@@ -31,25 +32,44 @@ export class MathCaptcha {
     }
 
     generateChallenge(): void {
-        const operations = ['+', '-', '×'];
-        const opIndex = Math.floor(Math.random() * operations.length);
-        const operation = operations[opIndex];
-        
-        this.operator.set(operation);
+        const operations = ['+', '-', '×'] as const;
 
-        if (operation === '+') {
-            this.num1.set(Math.floor(Math.random() * 30) + 1);
-            this.num2.set(Math.floor(Math.random() * 30) + 1);
-            this.answer = this.num1() + this.num2();
-        } else if (operation === '-') {
-            this.num1.set(Math.floor(Math.random() * 25) + 10);
-            this.num2.set(Math.floor(Math.random() * this.num1()) + 1);
-            this.answer = this.num1() - this.num2();
-        } else { // multiplication
-            this.num1.set(Math.floor(Math.random() * 10) + 1);
-            this.num2.set(Math.floor(Math.random() * 10) + 1);
-            this.answer = this.num1() * this.num2();
+        let operation: (typeof operations)[number] = '+';
+        let first = 0;
+        let second = 0;
+        let expected = 0;
+        let challengeKey = '';
+
+        // Avoid returning exactly the same challenge on manual refresh.
+        for (let attempts = 0; attempts < 10; attempts++) {
+            const opIndex = Math.floor(Math.random() * operations.length);
+            operation = operations[opIndex];
+
+            if (operation === '+') {
+                first = Math.floor(Math.random() * 30) + 1;
+                second = Math.floor(Math.random() * 30) + 1;
+                expected = first + second;
+            } else if (operation === '-') {
+                first = Math.floor(Math.random() * 25) + 10;
+                second = Math.floor(Math.random() * first) + 1;
+                expected = first - second;
+            } else {
+                first = Math.floor(Math.random() * 10) + 1;
+                second = Math.floor(Math.random() * 10) + 1;
+                expected = first * second;
+            }
+
+            challengeKey = `${operation}:${first}:${second}:${expected}`;
+            if (challengeKey !== this.lastChallengeKey) {
+                break;
+            }
         }
+
+        this.lastChallengeKey = challengeKey;
+        this.operator.set(operation);
+        this.num1.set(first);
+        this.num2.set(second);
+        this.answer = expected;
 
         this.userAnswerControl.setValue(null, { emitEvent: false });
         this.userAnswer.set(null);

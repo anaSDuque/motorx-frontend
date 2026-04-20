@@ -1,9 +1,12 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PasswordResetService } from '../../services/password-reset.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
+
+const CODE_VALIDITY_SECONDS = 10 * 60;
+const RESEND_COOLDOWN_SECONDS = 30;
 
 @Component({
   selector: 'app-reset-password',
@@ -12,10 +15,13 @@ import { NotificationService } from '../../services/notification.service';
   templateUrl: './reset-password.html',
   styleUrls: ['./reset-password.css'],
 })
-export class ResetPassword {
+export class ResetPassword implements OnInit, OnDestroy {
   private readonly passwordResetService = inject(PasswordResetService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificationService = inject(NotificationService);
+  private codeCountdownTimer: ReturnType<typeof setInterval> | null = null;
+  private resendCountdownTimer: ReturnType<typeof setInterval> | null = null;
 
   // Code digits — 6 separate boxes
   protected readonly codeDigits = signal<string[]>(['', '', '', '', '', '']);
@@ -29,6 +35,37 @@ export class ResetPassword {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly success = signal(false);
+  protected readonly resendLoading = signal(false);
+  protected readonly resendMessage = signal('');
+  protected readonly email = signal('');
+  protected readonly codeRemainingSeconds = signal(CODE_VALIDITY_SECONDS);
+  protected readonly resendCooldownSeconds = signal(0);
+  protected readonly formattedCodeRemaining = computed(() => this.formatAsMinutesSeconds(this.codeRemainingSeconds()));
+  protected readonly formattedResendCooldown = computed(() => this.formatAsMinutesSeconds(this.resendCooldownSeconds()));
+  protected readonly canResend = computed(() => this.resendCooldownSeconds() === 0);
+
+  ngOnInit(): void {
+    const rawEmail = this.route.snapshot.queryParamMap.get('email') ?? '';
+    this.email.set(rawEmail.trim().toLowerCase());
+
+    const sentAt = Number(this.route.snapshot.queryParamMap.get('sentAt') ?? 0);
+    if (Number.isFinite(sentAt) && sentAt > 0) {
+      const elapsedSeconds = Math.floor((Date.now() - sentAt) / 1000);
+      const remainingCode = Math.max(CODE_VALIDITY_SECONDS - elapsedSeconds, 0);
+      const remainingCooldown = Math.max(RESEND_COOLDOWN_SECONDS - elapsedSeconds, 0);
+
+      this.startCodeCountdown(remainingCode);
+      this.startResendCooldown(remainingCooldown);
+      return;
+    }
+
+    this.startCodeCountdown(CODE_VALIDITY_SECONDS);
+  }
+
+  ngOnDestroy(): void {
+    this.clearCodeCountdown();
+    this.clearResendCountdown();
+  }
 
   protected toggleShowPassword(): void {
     this.showPassword.update((val) => !val);
@@ -137,5 +174,98 @@ export class ResetPassword {
           this.error.set(this.notificationService.handleHttpError(err));
         },
       });
+  }
+
+  protected onResendCode(): void {
+    if (!this.email()) {
+      this.error.set('No se encontró el correo para reenviar el código. Vuelve al paso anterior.');
+      return;
+    }
+
+    if (!this.canResend() || this.resendLoading()) {
+      return;
+    }
+
+    this.resendLoading.set(true);
+    this.error.set('');
+    this.resendMessage.set('');
+    this.startResendCooldown(RESEND_COOLDOWN_SECONDS);
+
+    this.passwordResetService.requestReset({ email: this.email() }).subscribe({
+      next: () => {
+        this.resendLoading.set(false);
+        this.codeDigits.set(['', '', '', '', '', '']);
+        this.startCodeCountdown(CODE_VALIDITY_SECONDS);
+        this.resendMessage.set('Código reenviado. Revisa tu correo.');
+
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { sentAt: Date.now() },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      },
+      error: (err) => {
+        this.resendLoading.set(false);
+        this.error.set(this.notificationService.handleHttpError(err));
+      },
+    });
+  }
+
+  private startCodeCountdown(seconds: number): void {
+    this.clearCodeCountdown();
+    this.codeRemainingSeconds.set(seconds);
+
+    if (seconds <= 0) {
+      return;
+    }
+
+    this.codeCountdownTimer = setInterval(() => {
+      const next = this.codeRemainingSeconds() - 1;
+      this.codeRemainingSeconds.set(Math.max(next, 0));
+
+      if (next <= 0) {
+        this.clearCodeCountdown();
+      }
+    }, 1000);
+  }
+
+  private startResendCooldown(seconds: number): void {
+    this.clearResendCountdown();
+    this.resendCooldownSeconds.set(seconds);
+
+    if (seconds <= 0) {
+      return;
+    }
+
+    this.resendCountdownTimer = setInterval(() => {
+      const next = this.resendCooldownSeconds() - 1;
+      this.resendCooldownSeconds.set(Math.max(next, 0));
+
+      if (next <= 0) {
+        this.clearResendCountdown();
+      }
+    }, 1000);
+  }
+
+  private clearCodeCountdown(): void {
+    if (this.codeCountdownTimer) {
+      clearInterval(this.codeCountdownTimer);
+      this.codeCountdownTimer = null;
+    }
+  }
+
+  private clearResendCountdown(): void {
+    if (this.resendCountdownTimer) {
+      clearInterval(this.resendCountdownTimer);
+      this.resendCountdownTimer = null;
+    }
+  }
+
+  private formatAsMinutesSeconds(totalSeconds: number): string {
+    const safeSeconds = Math.max(totalSeconds, 0);
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
 }
