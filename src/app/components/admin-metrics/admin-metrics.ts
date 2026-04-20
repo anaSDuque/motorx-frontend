@@ -134,7 +134,7 @@ export class AdminMetrics implements OnInit {
     this.securityAttemptsChart = {
       series: [summary.security.unauthorizedAttempts401, summary.security.forbiddenAttempts403],
       chart: { type: 'donut', height: 300, toolbar: { show: true } },
-      labels: ['Intentos 401', 'Intentos 403'],
+      labels: ['Unauthorized', 'Forbidden'],
       colors: ['#ef4444', '#f59e0b'],
       legend: { position: 'bottom' },
       dataLabels: { enabled: true },
@@ -324,7 +324,7 @@ export class AdminMetrics implements OnInit {
       dataLabels: { enabled: false },
       stroke: { width: [0, 3] },
       xaxis: {
-        categories: summary.performance.map((item) => this.shortenEndpoint(item.endpoint)),
+        categories: summary.performance.map((item) => this.getPerformanceEndpointLabel(item.endpoint)),
       },
       yaxis: [
         {
@@ -376,5 +376,19 @@ export class AdminMetrics implements OnInit {
       return endpoint;
     }
     return `${endpoint.slice(0, 26)}...`;
+  }
+
+  private getPerformanceEndpointLabel(endpoint: string): string {
+    const normalized = endpoint.toLowerCase().trim();
+
+    if (normalized.includes('/api/auth/login')) {
+      return 'Inicio de Sesion';
+    }
+
+    if (normalized.includes('/api/verify-2fa') || normalized.includes('/verify-2fa')) {
+      return 'Verificacion 2FA';
+    }
+
+    return this.shortenEndpoint(endpoint);
   }
 }

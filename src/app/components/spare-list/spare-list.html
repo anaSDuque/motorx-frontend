@@ -78,11 +78,28 @@
           </div>
           <div class="col-md-4">
             <label class="form-label">Ubicación bodega</label>
-            <input class="form-control" formControlName="warehouseLocation" placeholder="00-00-00-00" />
+            <div class="warehouse-chip-row">
+              @for (segment of warehouseSegments(); track $index) {
+                <input
+                  class="form-control warehouse-chip"
+                  [value]="segment"
+                  inputmode="numeric"
+                  maxlength="2"
+                  placeholder="00"
+                  (input)="onWarehouseSegmentInput($index, $any($event.target).value)"
+                  (blur)="onWarehouseSegmentBlur($index)"
+                />
+                @if ($index < 3) {
+                  <span class="warehouse-separator">-</span>
+                }
+              }
+            </div>
+            <input type="hidden" formControlName="warehouseLocation" />
+            <small class="text-muted d-block mt-1">Formato: NN-NN-NN-NN (solo 2 dígitos por chip)</small>
             @if (hasError('warehouseLocation', 'required')) {
               <small class="text-danger">La ubicación es obligatoria.</small>
             }
-            @if (hasError('warehouseLocation', 'pattern')) {
+            @if (hasError('warehouseLocation', 'pattern') || warehouseLocationInvalid()) {
               <small class="text-danger">Formato inválido. Usa 00-00-00-00.</small>
             }
           </div>
@@ -95,6 +112,49 @@
             }
           </div>
           <div class="col-md-6">
+            <label class="form-label">Proveedor</label>
+            <input class="form-control" formControlName="supplier" />
+            @if (hasError('supplier', 'required')) {
+              <small class="text-danger">El proveedor es obligatorio.</small>
+            }
+          </div>
+
+          <div class="col-12">
+            <label class="form-label d-flex justify-content-between align-items-center">
+              <span>Compatibilidad de motocicletas</span>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addCompatibleMotorcycleLine()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </label>
+            <div class="d-flex flex-column gap-2">
+              @for (line of compatibleMotorcycleLines(); track $index) {
+                <div class="d-flex gap-2 align-items-center">
+                  <input
+                    class="form-control"
+                    [value]="line"
+                    placeholder="Ej: AKT NKD 125"
+                    (input)="updateCompatibleMotorcycleLine($index, $any($event.target).value)"
+                    (blur)="spareForm.controls.compatibleMotorcycles.markAsTouched()"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    (click)="removeCompatibleMotorcycleLine($index)"
+                    [disabled]="compatibleMotorcycleLines().length === 1"
+                    title="Eliminar línea"
+                  >
+                    <i class="bi bi-dash-lg"></i>
+                  </button>
+                </div>
+              }
+            </div>
+            <input type="hidden" formControlName="compatibleMotorcycles" />
+            @if (hasCompatibleMotorcyclesError()) {
+              <small class="text-danger">Agrega al menos una motocicleta compatible.</small>
+            }
+          </div>
+
+          <div class="col-md-6">
             <label class="form-label">Descripción</label>
             <input class="form-control" formControlName="description" />
           </div>
@@ -102,14 +162,23 @@
           <div class="col-md-3">
             <label class="form-label">Cantidad</label>
             <input type="number" class="form-control" formControlName="quantity" min="0" />
+            @if (hasError('quantity', 'min')) {
+              <small class="text-danger">La cantidad no puede ser negativa.</small>
+            }
           </div>
           <div class="col-md-3">
             <label class="form-label">Precio compra (IVA)</label>
             <input type="number" class="form-control" formControlName="purchasePriceWithVat" min="0" step="0.01" />
+            @if (hasError('purchasePriceWithVat', 'min')) {
+              <small class="text-danger">El precio no puede ser negativo.</small>
+            }
           </div>
           <div class="col-md-3">
             <label class="form-label">Umbral mínimo</label>
             <input type="number" class="form-control" formControlName="stockThreshold" min="0" />
+            @if (hasError('stockThreshold', 'min')) {
+              <small class="text-danger">El umbral no puede ser negativo.</small>
+            }
           </div>
           <div class="col-md-3 d-flex align-items-end">
             <div class="form-check form-switch">
@@ -120,7 +189,7 @@
         </div>
 
         <div class="mt-3">
-          <button class="btn btn-primary me-2" type="submit" [disabled]="formLoading()">
+          <button class="btn btn-primary me-2" type="submit" [disabled]="formLoading() || spareForm.invalid || warehouseLocationInvalid()">
             @if (formLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             {{ editingId() ? 'Actualizar' : 'Crear' }}
           </button>
@@ -174,9 +243,23 @@
                 <i class="bi bi-currency-dollar"></i>
               </button>
               @if (isAdmin && s.quantity < s.stockThreshold) {
-                <button class="btn btn-sm btn-outline-warning me-1" (click)="notifyRestock(s)" title="Notificar surtido">
-                  <i class="bi bi-bell"></i>
+                <button
+                  class="btn btn-sm btn-outline-warning me-1"
+                  (click)="notifyRestock(s)"
+                  title="Notificar surtido"
+                  [disabled]="isNotifyingRestock(s.id)"
+                >
+                  @if (isNotifyingRestock(s.id)) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <i class="bi bi-bell"></i>
+                  }
                 </button>
+                @if (getRestockFeedback(s.id); as feedback) {
+                  <div class="small mt-1" [class.text-success]="feedback.type === 'success'" [class.text-danger]="feedback.type === 'error'">
+                    {{ feedback.message }}
+                  </div>
+                }
               }
               @if (isAdmin) {
                 <button class="btn btn-sm btn-outline-danger" (click)="deleteSpare(s.id)" title="Eliminar">

@@ -67,8 +67,30 @@ export class CreateAppointment implements OnInit {
       this.onTypeChange();
     });
     this.appointmentDateControl.valueChanges.subscribe((value) => this.onDateChange(value));
-    this.currentMileageControl.valueChanges.subscribe((value) => this.currentMileage.set(Number(value)));
+    this.currentMileageControl.valueChanges.subscribe((value) => {
+      const normalized = this.normalizeMileage(value);
+      if (normalized !== value) {
+        this.currentMileageControl.setValue(normalized, { emitEvent: false });
+      }
+      this.currentMileage.set(normalized);
+    });
     this.clientNotesControl.valueChanges.subscribe((value) => this.clientNotes.set(value));
+  }
+
+  protected sanitizeMileageInput(value: string): void {
+    const digits = value.replace(/\D/g, '');
+    const normalized = digits === '' ? 0 : Number(digits);
+    this.currentMileageControl.setValue(this.normalizeMileage(normalized));
+  }
+
+  protected isCurrentMileageInvalid(): boolean {
+    return !Number.isInteger(this.currentMileage()) || this.currentMileage() < 0;
+  }
+
+  private normalizeMileage(value: unknown): number {
+    const numeric = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(numeric) || Number.isNaN(numeric)) return 0;
+    return Math.max(0, Math.trunc(numeric));
   }
 
   protected readonly appointmentTypes = [
@@ -118,14 +140,30 @@ export class CreateAppointment implements OnInit {
     this.appointmentDate.set(newDate);
     // clear previous errors
     this.error.set('');
+    if (!this.isFutureDate(newDate)) {
+      this.error.set('La fecha de la cita debe ser futura (desde mañana).');
+      return;
+    }
     if (this.isSunday(newDate)) {
       this.error.set('Los domingos no están disponibles para agendar citas');
     }
   }
 
+  protected isFutureDate(dateStr: string): boolean {
+    if (!dateStr) return false;
+    const selected = new Date(`${dateStr}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selected.getTime() > today.getTime();
+  }
+
   protected checkPlateRestriction(): void {
     if (!this.selectedVehicleId() || !this.appointmentDate() || !this.selectedType()) {
       this.error.set('Selecciona vehículo, tipo y fecha para verificar pico y placa');
+      return;
+    }
+    if (!this.isFutureDate(this.appointmentDate())) {
+      this.error.set('La fecha de la cita debe ser futura (desde mañana).');
       return;
     }
     if (this.isSunday(this.appointmentDate())) {
@@ -158,6 +196,10 @@ export class CreateAppointment implements OnInit {
     // Validate required selections before loading slots
     if (!this.selectedVehicleId() || !this.appointmentDate() || !this.selectedType()) {
       this.error.set('Selecciona vehículo, tipo y fecha antes de continuar');
+      return;
+    }
+    if (!this.isFutureDate(this.appointmentDate())) {
+      this.error.set('La fecha de la cita debe ser futura (desde mañana).');
       return;
     }
     if (this.isSunday(this.appointmentDate())) {
@@ -202,11 +244,11 @@ export class CreateAppointment implements OnInit {
             this.step.set(1);
           }
           if (err.status === 400) {
-            this.error.set(serverMsg ?? 'Datos inválidos para consultar horarios (tipo/fecha)');
+            this.error.set(this.extractApiErrorMessage(err, serverMsg ?? 'Datos inválidos para consultar horarios (tipo/fecha)'));
           } else if (err.status === 409) {
-            this.error.set(serverMsg ?? 'No es posible consultar horarios para esta fecha.');
+            this.error.set(this.extractApiErrorMessage(err, serverMsg ?? 'No es posible consultar horarios para esta fecha.'));
           } else {
-            this.error.set(serverMsg ?? 'Error al cargar horarios');
+            this.error.set(this.extractApiErrorMessage(err, serverMsg ?? 'Error al cargar horarios'));
           }
         },
       });
@@ -232,10 +274,16 @@ export class CreateAppointment implements OnInit {
   protected submitAppointment(): void {
     this.loading.set(true);
     this.error.set('');
+    this.success.set('');
 
     if (!this.selectedVehicleId() || !this.selectedType() || !this.appointmentDate() || !this.selectedSlot()) {
       this.loading.set(false);
       this.error.set('Completa todos los datos de la cita antes de confirmar');
+      return;
+    }
+    if (!this.isFutureDate(this.appointmentDate())) {
+      this.loading.set(false);
+      this.error.set('La fecha de la cita debe ser futura (desde mañana).');
       return;
     }
     if (this.isSunday(this.appointmentDate())) {
@@ -246,9 +294,9 @@ export class CreateAppointment implements OnInit {
 
     // Require mileage
     this.currentMileageTouched.set(true);
-    if (!Number.isInteger(this.currentMileage()) || this.currentMileage() <= 0) {
+    if (!Number.isInteger(this.currentMileage()) || this.currentMileage() < 0) {
       this.loading.set(false);
-      this.error.set('El kilometraje debe ser un número entero mayor a 0');
+      this.error.set('El kilometraje debe ser un número entero mayor o igual a 0');
       return;
     }
 
@@ -276,6 +324,7 @@ export class CreateAppointment implements OnInit {
           .split('\n')
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
+        const uniqueNotes = [...new Set(notes)];
 
         this.appointmentService
           .createAppointment({
@@ -284,12 +333,13 @@ export class CreateAppointment implements OnInit {
             appointmentDate: this.appointmentDate(),
             startTime: this.selectedSlot()!.startTime,
             currentMileage: this.currentMileage(),
-            clientNotes: notes.length > 0 ? notes : undefined,
+            clientNotes: uniqueNotes.length > 0 ? uniqueNotes : undefined,
           })
           .subscribe({
             next: () => {
               this.loading.set(false);
-              this.router.navigate(['/appointments']);
+              this.success.set('Cita creada exitosamente. Redirigiendo...');
+              setTimeout(() => this.router.navigate(['/appointments']), 2200);
             },
             error: (err) => {
               console.error('[create-appointment] createAppointment error:', err);
@@ -301,19 +351,53 @@ export class CreateAppointment implements OnInit {
                 this.availableSlots.set([]);
                 this.selectedSlot.set(null);
               }
-              this.error.set(serverMsg ?? 'Error al agendar la cita');
+              this.error.set(this.extractApiErrorMessage(err, serverMsg ?? 'Error al agendar la cita'));
             },
           });
       },
       error: (err) => {
         console.error('[create-appointment] revalidate getAvailableSlots error:', err);
         this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Error al verificar disponibilidad antes de crear la cita');
+        this.error.set(this.extractApiErrorMessage(err, err.error?.message ?? 'Error al verificar disponibilidad antes de crear la cita'));
       },
     });
   }
 
   protected get minDate(): string {
-    return new Date().toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+
+  private extractApiErrorMessage(error: any, fallback: string): string {
+    const backend = error?.error;
+    const message = typeof backend?.message === 'string' ? backend.message.trim() : '';
+
+    if (Array.isArray(backend?.details)) {
+      const details = backend.details
+        .map((detail: unknown) => {
+          if (typeof detail === 'string') return detail.trim();
+          if (detail && typeof detail === 'object') {
+            return Object.values(detail as Record<string, unknown>).map(String).join(': ');
+          }
+          return '';
+        })
+        .filter((detail: string) => detail.length > 0)
+        .join(', ');
+      if (message && details) return `${message}: ${details}`;
+      if (details) return details;
+    }
+
+    if (backend?.details && typeof backend.details === 'object') {
+      const details = Object.values(backend.details as Record<string, unknown>)
+        .map((value) => String(value).trim())
+        .filter((value) => value.length > 0)
+        .join(', ');
+      if (message && details) return `${message}: ${details}`;
+      if (details) return details;
+    }
+
+    if (message) return message;
+    return fallback;
   }
 }

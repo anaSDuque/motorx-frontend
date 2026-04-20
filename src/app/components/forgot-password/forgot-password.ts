@@ -46,7 +46,9 @@ export class ForgotPassword {
       next: () => {
         this.loading.set(false);
         this.message.set('Se envió el correo de restablecimiento. Revisa tu bandeja.');
-        this.router.navigate(['/reset-password'], { queryParams: { email: normalizedEmail } });
+        this.router.navigate(['/reset-password'], {
+          queryParams: { email: normalizedEmail, sentAt: Date.now() },
+        });
       },
       error: (err) => {
         this.loading.set(false);

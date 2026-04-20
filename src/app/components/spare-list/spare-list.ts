@@ -28,12 +28,16 @@ export class SpareList implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal('');
   protected readonly success = signal('');
+  protected readonly notifyingRestockId = signal<number | null>(null);
+  protected readonly restockFeedbackBySpareId = signal<Record<number, { type: 'success' | 'error'; message: string }>>({});
 
   protected readonly showForm = signal(false);
   protected readonly editingId = signal<number | null>(null);
   protected readonly formLoading = signal(false);
   protected readonly formError = signal('');
   protected readonly onlyBelowThreshold = signal(false);
+  protected readonly warehouseSegments = signal<string[]>(['00', '00', '00', '00']);
+  protected readonly compatibleMotorcycleLines = signal<string[]>(['']);
   protected readonly searchForm = this.fb.nonNullable.group({
     name: [''],
     savCode: [''],
@@ -43,6 +47,8 @@ export class SpareList implements OnInit {
     savCode: ['', [Validators.required, Validators.maxLength(100)]],
     spareCode: ['', [Validators.required, Validators.maxLength(100)]],
     name: ['', [Validators.required, Validators.maxLength(150)]],
+    supplier: ['', [Validators.required, Validators.maxLength(150)]],
+    compatibleMotorcycles: ['', [Validators.required, Validators.maxLength(500)]],
     description: ['', [Validators.maxLength(500)]],
     quantity: [0, [Validators.required, Validators.min(0)]],
     purchasePriceWithVat: [0, [Validators.required, Validators.min(0)]],
@@ -111,16 +117,24 @@ export class SpareList implements OnInit {
   protected openCreateForm(): void {
     this.resetForm();
     this.editingId.set(null);
-    this.spareForm.controls.warehouseLocation.setValue('00-00-00-00');
+    this.setWarehouseFromString('00-00-00-00');
+    this.compatibleMotorcycleLines.set(['']);
     this.showForm.set(true);
   }
 
   protected openEditForm(spare: SpareResponseDTO): void {
     this.editingId.set(spare.id);
+    const compatibleFromSpare = (spare.compatibleMotorcycles ?? '')
+      .split(',')
+      .map((line) => line.trim())
+      .filter((line) => !!line);
+
     this.spareForm.patchValue({
       savCode: spare.savCode,
       spareCode: spare.spareCode,
       name: spare.name,
+      supplier: spare.supplier ?? '',
+      compatibleMotorcycles: (spare.compatibleMotorcycles ?? '').trim(),
       description: spare.description ?? '',
       quantity: spare.quantity,
       purchasePriceWithVat: spare.purchasePriceWithVat,
@@ -128,6 +142,8 @@ export class SpareList implements OnInit {
       warehouseLocation: spare.warehouseLocation,
       stockThreshold: spare.stockThreshold,
     });
+    this.setWarehouseFromString(spare.warehouseLocation);
+    this.compatibleMotorcycleLines.set(compatibleFromSpare.length > 0 ? compatibleFromSpare : ['']);
     this.formError.set('');
     this.showForm.set(true);
   }
@@ -138,6 +154,8 @@ export class SpareList implements OnInit {
   }
 
   protected onSubmit(): void {
+    this.syncCompatibleMotorcyclesControl();
+    this.spareForm.controls.warehouseLocation.setValue(this.currentWarehouseLocation, { emitEvent: false });
     this.spareForm.markAllAsTouched();
     if (this.spareForm.invalid) {
       this.formError.set('Completa correctamente los campos requeridos.');
@@ -149,16 +167,41 @@ export class SpareList implements OnInit {
       savCode: raw.savCode.trim(),
       spareCode: raw.spareCode.trim(),
       name: raw.name.trim(),
+      supplier: raw.supplier.trim(),
+      compatibleMotorcycles: raw.compatibleMotorcycles.trim(),
       description: raw.description.trim(),
       quantity: raw.quantity,
       purchasePriceWithVat: raw.purchasePriceWithVat,
       isOil: raw.isOil,
-      warehouseLocation: raw.warehouseLocation.trim(),
+      warehouseLocation: this.currentWarehouseLocation,
       stockThreshold: raw.stockThreshold,
     };
 
-    if (!normalized.savCode || !normalized.spareCode || !normalized.name || !normalized.warehouseLocation) {
+    if (
+      !normalized.savCode ||
+      !normalized.spareCode ||
+      !normalized.name ||
+      !normalized.supplier ||
+      !normalized.compatibleMotorcycles ||
+      !normalized.warehouseLocation
+    ) {
       this.formError.set('No se permiten campos en blanco.');
+      return;
+    }
+
+    if (!/^\d{2}-\d{2}-\d{2}-\d{2}$/.test(normalized.warehouseLocation)) {
+      this.formError.set('La ubicación de bodega debe tener formato 00-00-00-00.');
+      return;
+    }
+
+    if (
+      normalized.quantity < 0 ||
+      !Number.isInteger(normalized.quantity) ||
+      normalized.purchasePriceWithVat < 0 ||
+      normalized.stockThreshold < 0 ||
+      !Number.isInteger(normalized.stockThreshold)
+    ) {
+      this.formError.set('Cantidad y umbral deben ser enteros positivos; el precio no puede ser negativo.');
       return;
     }
 
@@ -170,6 +213,8 @@ export class SpareList implements OnInit {
         savCode: normalized.savCode,
         spareCode: normalized.spareCode,
         name: normalized.name,
+        supplier: normalized.supplier,
+        compatibleMotorcycles: normalized.compatibleMotorcycles,
         description: normalized.description || undefined,
         quantity: normalized.quantity,
         purchasePriceWithVat: normalized.purchasePriceWithVat,
@@ -194,15 +239,16 @@ export class SpareList implements OnInit {
     }
 
     const dto: CreateSpareDTO = {
+      name: normalized.name,
+      compatibleMotorcycles: normalized.compatibleMotorcycles,
       savCode: normalized.savCode,
       spareCode: normalized.spareCode,
-      name: normalized.name,
-      description: normalized.description || undefined,
+      supplier: normalized.supplier,
       quantity: normalized.quantity,
       purchasePriceWithVat: normalized.purchasePriceWithVat,
       isOil: normalized.isOil,
-      warehouseLocation: normalized.warehouseLocation,
       stockThreshold: normalized.stockThreshold,
+      warehouseLocation: normalized.warehouseLocation,
     };
 
     this.spareService.createSpare(dto).subscribe({
@@ -214,9 +260,59 @@ export class SpareList implements OnInit {
       },
       error: (err) => {
         this.formLoading.set(false);
-        this.formError.set(err.error?.message ?? 'Error al crear repuesto');
+        this.formError.set(this.extractApiErrorMessage(err, 'Error al crear repuesto'));
       },
     });
+  }
+
+  protected addCompatibleMotorcycleLine(): void {
+    this.compatibleMotorcycleLines.update((lines) => [...lines, '']);
+  }
+
+  protected removeCompatibleMotorcycleLine(index: number): void {
+    this.compatibleMotorcycleLines.update((lines) => {
+      if (lines.length <= 1) {
+        return [''];
+      }
+      return lines.filter((_, lineIndex) => lineIndex !== index);
+    });
+    this.syncCompatibleMotorcyclesControl();
+  }
+
+  protected updateCompatibleMotorcycleLine(index: number, value: string): void {
+    this.compatibleMotorcycleLines.update((lines) => lines.map((line, lineIndex) => (lineIndex === index ? value : line)));
+    this.syncCompatibleMotorcyclesControl();
+  }
+
+  protected onWarehouseSegmentInput(index: number, value: string): void {
+    const clean = value.replace(/\D/g, '').slice(0, 2);
+    this.warehouseSegments.update((segments) =>
+      segments.map((segment, segmentIndex) => (segmentIndex === index ? clean : segment))
+    );
+    this.spareForm.controls.warehouseLocation.setValue(this.currentWarehouseLocation, { emitEvent: false });
+  }
+
+  protected onWarehouseSegmentBlur(index: number): void {
+    this.warehouseSegments.update((segments) =>
+      segments.map((segment, segmentIndex) => {
+        if (segmentIndex !== index) {
+          return segment;
+        }
+        if (!segment) {
+          return '00';
+        }
+        return segment.padStart(2, '0').slice(-2);
+      })
+    );
+    this.spareForm.controls.warehouseLocation.setValue(this.currentWarehouseLocation, { emitEvent: false });
+  }
+
+  protected get currentWarehouseLocation(): string {
+    return this.warehouseSegments().map((segment) => segment.padStart(2, '0').slice(-2)).join('-');
+  }
+
+  protected warehouseLocationInvalid(): boolean {
+    return !/^\d{2}-\d{2}-\d{2}-\d{2}$/.test(this.currentWarehouseLocation);
   }
 
   protected updatePurchasePrice(spare: SpareResponseDTO): void {
@@ -263,15 +359,53 @@ export class SpareList implements OnInit {
   protected notifyRestock(spare: SpareResponseDTO): void {
     if (!this.isAdmin) return;
 
-    this.spareService.notifyRestock(spare.id).subscribe({
-      next: (res) => this.success.set(res.message || 'Notificación de surtido enviada'),
-      error: (err) => this.error.set(err.error?.message ?? 'Error al notificar surtido'),
+    this.notifyingRestockId.set(spare.id);
+    this.error.set('');
+    this.success.set('');
+    this.restockFeedbackBySpareId.update((feedback) => {
+      const next = { ...feedback };
+      delete next[spare.id];
+      return next;
     });
+
+    this.spareService.notifyRestock(spare.id).subscribe({
+      next: (res) => {
+        const message = (res?.message ?? 'Notificación de surtido enviada').trim();
+        this.success.set(message);
+        this.restockFeedbackBySpareId.update((feedback) => ({
+          ...feedback,
+          [spare.id]: { type: 'success', message },
+        }));
+        this.notifyingRestockId.set(null);
+      },
+      error: (err) => {
+        const message = err.error?.message ?? 'Error al notificar surtido';
+        this.error.set(message);
+        this.restockFeedbackBySpareId.update((feedback) => ({
+          ...feedback,
+          [spare.id]: { type: 'error', message },
+        }));
+        this.notifyingRestockId.set(null);
+      },
+    });
+  }
+
+  protected isNotifyingRestock(spareId: number): boolean {
+    return this.notifyingRestockId() === spareId;
+  }
+
+  protected getRestockFeedback(spareId: number): { type: 'success' | 'error'; message: string } | null {
+    return this.restockFeedbackBySpareId()[spareId] ?? null;
   }
 
   protected hasError(controlName: keyof typeof this.spareForm.controls, errorName: string): boolean {
     const control = this.spareForm.controls[controlName];
     return control.touched && control.hasError(errorName);
+  }
+
+  protected hasCompatibleMotorcyclesError(): boolean {
+    const control = this.spareForm.controls.compatibleMotorcycles;
+    return control.touched && control.invalid;
   }
 
   private buildSearchFilters(): SpareFiltersDTO | undefined {
@@ -294,6 +428,8 @@ export class SpareList implements OnInit {
       savCode: '',
       spareCode: '',
       name: '',
+      supplier: '',
+      compatibleMotorcycles: '',
       description: '',
       quantity: 0,
       purchasePriceWithVat: 0,
@@ -301,6 +437,54 @@ export class SpareList implements OnInit {
       warehouseLocation: '00-00-00-00',
       stockThreshold: 0,
     });
+    this.setWarehouseFromString('00-00-00-00');
+    this.compatibleMotorcycleLines.set(['']);
     this.formError.set('');
+  }
+
+  private setWarehouseFromString(location: string): void {
+    const parts = (location || '').split('-').map((segment) => segment.replace(/\D/g, '').slice(0, 2));
+    const normalized = [0, 1, 2, 3].map((index) => (parts[index] ?? '00').padStart(2, '0').slice(-2));
+    this.warehouseSegments.set(normalized);
+    this.spareForm.controls.warehouseLocation.setValue(normalized.join('-'), { emitEvent: false });
+  }
+
+  private syncCompatibleMotorcyclesControl(): void {
+    const compatible = this.compatibleMotorcycleLines()
+      .map((line) => line.trim())
+      .filter((line) => !!line)
+      .join(', ');
+
+    this.spareForm.controls.compatibleMotorcycles.setValue(compatible, { emitEvent: false });
+    this.spareForm.controls.compatibleMotorcycles.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private extractApiErrorMessage(error: any, fallback: string): string {
+    const backend = error?.error;
+    const message = typeof backend?.message === 'string' ? backend.message.trim() : '';
+
+    if (Array.isArray(backend?.details)) {
+      const details = backend.details
+        .map((item: unknown) => {
+          if (typeof item === 'string') return item.trim();
+          if (item && typeof item === 'object') {
+            return Object.values(item as Record<string, unknown>).map(String).join(': ');
+          }
+          return '';
+        })
+        .filter((detail: string) => !!detail)
+        .join(', ');
+      if (message && details) return `${message}: ${details}`;
+      if (details) return details;
+    }
+
+    if (backend?.details && typeof backend.details === 'object') {
+      const details = Object.values(backend.details as Record<string, unknown>).map(String).join(', ');
+      if (message && details) return `${message}: ${details}`;
+      if (details) return details;
+    }
+
+    if (message) return message;
+    return fallback;
   }
 }

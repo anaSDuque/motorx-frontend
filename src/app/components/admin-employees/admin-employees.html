@@ -35,7 +35,7 @@
             <label class="form-label">Cargo</label>
             <select class="form-select" [formControl]="positionControl">
               @for (p of positions; track p) {
-                <option [ngValue]="p">{{ p }}</option>
+                <option [ngValue]="p">{{ getPositionLabel(p) }}</option>
               }
             </select>
           </div>
@@ -196,7 +196,7 @@
           <tr>
             <td class="fw-semibold">{{ e.userName }}</td>
             <td>{{ e.userEmail }}</td>
-            <td>{{ e.position }}</td>
+            <td>{{ getPositionLabel(e.position) }}</td>
             <td><span class="badge" [class]="getStateBadge(e.state)">{{ getStateLabel(e.state) }}</span></td>
             <td>{{ e.userPhone }}</td>
             <td>

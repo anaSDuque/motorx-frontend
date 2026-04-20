@@ -130,6 +130,22 @@
                 }
               </div>
               <div class="col-md-6">
+                <label class="form-label">Proveedor</label>
+                <input class="form-control" formControlName="supplier" />
+                @if (hasSpareFormError('supplier', 'required')) {
+                  <small class="text-danger">El proveedor es obligatorio.</small>
+                }
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Compatibilidad de motocicletas</label>
+                <input class="form-control" formControlName="compatibleMotorcycles" placeholder="Ej: AKT NKD 125, Yamaha FZ" />
+                @if (hasSpareFormError('compatibleMotorcycles', 'required')) {
+                  <small class="text-danger">La compatibilidad es obligatoria.</small>
+                }
+              </div>
+
+              <div class="col-md-6">
                 <label class="form-label">Descripción</label>
                 <input class="form-control" formControlName="description" />
               </div>
@@ -156,7 +172,7 @@
 
             <div class="mt-3 d-flex justify-content-end gap-2">
               <button class="btn btn-outline-secondary" type="button" (click)="closeCreateSpareModal()">Cancelar</button>
-              <button class="btn btn-primary" type="submit" [disabled]="creatingSpare()">
+              <button class="btn btn-primary" type="submit" [disabled]="creatingSpare() || spareForm.invalid">
                 @if (creatingSpare()) { <span class="spinner-border spinner-border-sm me-1"></span> }
                 Crear repuesto
               </button>
