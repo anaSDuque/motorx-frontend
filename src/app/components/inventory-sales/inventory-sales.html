@@ -125,7 +125,7 @@
           @for (sale of sales(); track sale.id) {
             <tr>
               <td class="fw-semibold">#{{ sale.id }}</td>
-              <td>{{ sale.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ sale.createdAt ? (sale.createdAt | date: 'yyyy-MM-dd HH:mm') : '-' }}</td>
               <td>{{ sale.total }}</td>
               <td>{{ sale.items.length }}</td>
               <td>{{ sale.appointmentId ?? '-' }}</td>
