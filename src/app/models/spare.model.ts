@@ -18,11 +18,10 @@ export interface SpareFiltersDTO {
 
 export interface UpdateSpareDTO {
   name: string;
-  compatibleMotorcycles?: string;
+  compatibleMotorcycles: string;
   savCode: string;
   spareCode: string;
-  supplier?: string;
-  description?: string;
+  supplier: string;
   quantity: number;
   purchasePriceWithVat: number;
   isOil: boolean;
@@ -37,17 +36,14 @@ export interface UpdateSparePurchasePriceDTO {
 export interface SpareResponseDTO {
   id: number;
   name: string;
-  compatibleMotorcycles?: string;
+  compatibleMotorcycles: string;
   savCode: string;
   spareCode: string;
-  supplier?: string;
-  description: string | null;
+  supplier: string;
   quantity: number;
   purchasePriceWithVat: number;
   salePrice: number;
   isOil: boolean;
   warehouseLocation: string;
   stockThreshold: number;
-  createdAt: string;
-  updatedAt: string;
 }

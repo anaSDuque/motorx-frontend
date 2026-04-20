@@ -7,8 +7,8 @@
     <div class="col-md-4">
       <div class="card border-0 h-100">
         <div class="card-body">
-          <h6 class="text-muted mb-2">Ventas hoy</h6>
-          <div class="display-6 fw-bold">{{ daily.totalTransactions }}</div>
+          <h6 class="text-muted mb-2">Transacciones hoy</h6>
+          <div class="display-6 fw-bold">{{ daily.transactionCount }}</div>
         </div>
       </div>
     </div>
@@ -16,7 +16,7 @@
       <div class="card border-0 h-100">
         <div class="card-body">
           <h6 class="text-muted mb-2">Items vendidos hoy</h6>
-          <div class="display-6 fw-bold">{{ daily.totalItemsSold }}</div>
+          <div class="display-6 fw-bold">{{ totalItemsSoldToday }}</div>
         </div>
       </div>
     </div>
@@ -24,7 +24,7 @@
       <div class="card border-0 h-100">
         <div class="card-body">
           <h6 class="text-muted mb-2">Total día</h6>
-          <div class="display-6 fw-bold">{{ daily.totalAmount }}</div>
+          <div class="display-6 fw-bold">{{ daily.totalSales }}</div>
         </div>
       </div>
     </div>
@@ -49,13 +49,9 @@
   <div class="card-body">
     <form [formGroup]="saleForm" (ngSubmit)="createSale()">
       <div class="row g-3 mb-3">
-        <div class="col-md-4">
+        <div class="col-md-12">
           <label class="form-label">ID cita (opcional)</label>
           <input type="number" class="form-control" formControlName="appointmentId" min="1" />
-        </div>
-        <div class="col-md-8">
-          <label class="form-label">Notas</label>
-          <input class="form-control" formControlName="notes" />
         </div>
       </div>
 
@@ -118,18 +114,18 @@
             <th>Total</th>
             <th>Items</th>
             <th>Cita</th>
-            <th>Notas</th>
+            <th>Creado por</th>
           </tr>
         </thead>
         <tbody>
           @for (sale of sales(); track sale.id) {
             <tr>
               <td class="fw-semibold">#{{ sale.id }}</td>
-              <td>{{ sale.createdAt ? (sale.createdAt | date: 'yyyy-MM-dd HH:mm') : '-' }}</td>
-              <td>{{ sale.total }}</td>
+              <td>{{ sale.transactionDate ? (sale.transactionDate | date: 'yyyy-MM-dd HH:mm') : '-' }}</td>
+              <td>{{ sale.totalAmount }}</td>
               <td>{{ sale.items.length }}</td>
               <td>{{ sale.appointmentId ?? '-' }}</td>
-              <td>{{ sale.notes ?? '-' }}</td>
+              <td>{{ sale.createdByEmail || '-' }}</td>
             </tr>
           } @empty {
             <tr>

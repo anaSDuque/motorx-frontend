@@ -39,7 +39,7 @@ export class InventoryPurchases implements OnInit {
   protected readonly spareFormError = signal('');
 
   protected readonly purchaseForm = this.fb.group({
-    notes: [''],
+    supplier: ['', [Validators.required, Validators.maxLength(150)]],
     items: this.fb.array([this.createItemGroup()]),
   });
 
@@ -110,10 +110,15 @@ export class InventoryPurchases implements OnInit {
     }
 
     const raw = this.purchaseForm.getRawValue();
-    const normalizedNotes = raw.notes?.trim();
+    const normalizedSupplier = raw.supplier?.trim();
+
+    if (!normalizedSupplier) {
+      this.error.set('El proveedor es obligatorio.');
+      return;
+    }
 
     const dto: CreatePurchaseTransactionDTO = {
-      notes: normalizedNotes ? normalizedNotes : undefined,
+      supplier: normalizedSupplier,
       items: raw.items.map((item) => ({
         spareId: Number(item["spareId"]),
         quantity: item["quantity"],
@@ -128,7 +133,7 @@ export class InventoryPurchases implements OnInit {
       next: () => {
         this.creating.set(false);
         this.success.set('Compra registrada exitosamente');
-        this.purchaseForm.reset({ notes: '' });
+        this.purchaseForm.reset({ supplier: '' });
         this.items.clear();
         this.items.push(this.createItemGroup());
         this.loadData();

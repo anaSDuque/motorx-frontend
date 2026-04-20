@@ -40,9 +40,17 @@ export class InventorySales implements OnInit {
 
   protected readonly saleForm = this.fb.group({
     appointmentId: [null as number | null],
-    notes: [''],
     items: this.fb.array([this.createItemGroup()]),
   });
+
+  protected get totalItemsSoldToday(): number {
+    const summary = this.dailySummary();
+    if (!summary?.sales?.length) return 0;
+    return summary.sales.reduce(
+      (saleAcc, sale) => saleAcc + sale.items.reduce((itemAcc, item) => itemAcc + item.quantity, 0),
+      0
+    );
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -107,7 +115,6 @@ export class InventorySales implements OnInit {
 
     const dto: CreateSaleTransactionDTO = {
       appointmentId: appointmentId ? Number(appointmentId) : null,
-      notes: raw.notes?.trim() || undefined,
       items: raw.items.map((item) => ({
         spareId: Number(item["spareId"]),
         quantity: item["quantity"],
@@ -121,7 +128,7 @@ export class InventorySales implements OnInit {
       next: () => {
         this.creating.set(false);
         this.success.set('Venta registrada exitosamente');
-        this.saleForm.reset({ appointmentId: null, notes: '' });
+        this.saleForm.reset({ appointmentId: null });
         this.items.clear();
         this.items.push(this.createItemGroup());
         this.loadData();

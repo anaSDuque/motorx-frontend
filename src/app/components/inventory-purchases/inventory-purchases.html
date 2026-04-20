@@ -19,6 +19,16 @@
   <div class="card-header bg-transparent fw-semibold">Registrar compra</div>
   <div class="card-body">
     <form [formGroup]="purchaseForm" (ngSubmit)="createPurchase()">
+      <div class="row g-3 mb-3">
+        <div class="col-md-12">
+          <label class="form-label">Proveedor</label>
+          <input class="form-control" formControlName="supplier" />
+          @if (purchaseForm.controls.supplier.touched && purchaseForm.controls.supplier.hasError('required')) {
+            <small class="text-danger">El proveedor es obligatorio.</small>
+          }
+        </div>
+      </div>
+
       <div formArrayName="items">
         @for (_item of items.controls; track $index) {
           <div class="row g-2 align-items-end mb-2" [formGroupName]="$index">
@@ -66,11 +76,6 @@
         <button class="btn btn-sm btn-outline-primary" type="button" (click)="addItem()">
           <i class="bi bi-plus-lg me-1"></i>Agregar item
         </button>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Notas</label>
-        <textarea class="form-control" rows="2" formControlName="notes"></textarea>
       </div>
 
       <button class="btn btn-primary" type="submit" [disabled]="creating()">
@@ -194,24 +199,26 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>Proveedor</th>
             <th>Fecha</th>
             <th>Total</th>
             <th>Items</th>
-            <th>Notas</th>
+            <th>Creado por</th>
           </tr>
         </thead>
         <tbody>
           @for (purchase of purchases(); track purchase.id) {
             <tr>
               <td class="fw-semibold">#{{ purchase.id }}</td>
-              <td>{{ purchase.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
-              <td>{{ purchase.total }}</td>
+              <td>{{ purchase.supplier }}</td>
+              <td>{{ purchase.transactionDate | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ purchase.totalAmount }}</td>
               <td>{{ purchase.items.length }}</td>
-              <td>{{ purchase.notes ?? '-' }}</td>
+              <td>{{ purchase.createdByEmail || '-' }}</td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="text-center text-muted py-4">No hay compras registradas.</td>
+              <td colspan="6" class="text-center text-muted py-4">No hay compras registradas.</td>
             </tr>
           }
         </tbody>

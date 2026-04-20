@@ -5,26 +5,26 @@ export interface CreatePurchaseItemDTO {
 }
 
 export interface CreatePurchaseTransactionDTO {
-  notes?: string;
+  supplier: string;
   items: CreatePurchaseItemDTO[];
 }
 
 export interface PurchaseItemResponseDTO {
   id: number;
   spareId: number;
-  spareCode: string;
   spareName: string;
   quantity: number;
   purchasePriceWithVat: number;
-  subtotal: number;
+  lineTotal: number;
 }
 
 export interface PurchaseTransactionResponseDTO {
   id: number;
-  total: number;
-  notes: string | null;
-  createdAt: string;
+  supplier: string;
+  transactionDate: string;
   createdByUserId: number;
+  createdByEmail: string;
+  totalAmount: number;
   items: PurchaseItemResponseDTO[];
 }
 
@@ -35,33 +35,31 @@ export interface CreateSaleItemDTO {
 
 export interface CreateSaleTransactionDTO {
   appointmentId?: number | null;
-  notes?: string;
   items: CreateSaleItemDTO[];
 }
 
 export interface SaleItemResponseDTO {
   id: number;
   spareId: number;
-  spareCode: string;
   spareName: string;
   quantity: number;
-  unitSalePrice: number;
-  subtotal: number;
+  salePriceAtMoment: number;
+  lineTotal: number;
 }
 
 export interface SaleTransactionResponseDTO {
   id: number;
   appointmentId: number | null;
-  total: number;
-  notes: string | null;
-  createdAt: string;
+  transactionDate: string;
   createdByUserId: number;
+  createdByEmail: string;
+  totalAmount: number;
   items: SaleItemResponseDTO[];
 }
 
 export interface DailySalesSummaryDTO {
   date: string;
-  totalTransactions: number;
-  totalItemsSold: number;
-  totalAmount: number;
+  totalSales: number;
+  transactionCount: number;
+  sales: SaleTransactionResponseDTO[];
 }
