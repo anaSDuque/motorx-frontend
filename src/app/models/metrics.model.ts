@@ -41,29 +41,31 @@ export interface MetricsSummaryDTO {
 
 export interface InventoryTopSellingMetricDTO {
   spareId: number;
-  spareCode: string;
+  savCode: string;
   spareName: string;
-  totalQuantitySold: number;
+  unitsSold: number;
 }
 
 export interface InventoryProfitMetricDTO {
   startDate: string;
   endDate: string;
-  grossSales: number;
-  estimatedProfit: number;
+  totalUnitsSold: number;
+  grossSalesAmount: number;
+  estimatedProfitAmount: number;
 }
 
 export interface InventoryStagnantMetricDTO {
   spareId: number;
-  spareCode: string;
+  savCode: string;
   spareName: string;
-  quantity: number;
+  currentStock: number;
   lastSaleDate: string | null;
   daysWithoutSales: number | null;
+  neverSold: boolean;
 }
 
 export interface InventoryBelowThresholdPercentageDTO {
-  percentage: number;
-  belowThresholdCount: number;
-  totalConsidered: number;
+  sparesBelowThreshold: number;
+  sparesWithThreshold: number;
+  belowThresholdPercent: number;
 }

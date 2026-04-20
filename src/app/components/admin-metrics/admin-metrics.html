@@ -64,7 +64,7 @@
     @if (inventoryProfit(); as profit) {
       <div class="kpi-tile kpi-d">
         <p class="kpi-label">Ganancia estimada</p>
-        <p class="kpi-value">{{ profit.estimatedProfit }}</p>
+        <p class="kpi-value">{{ profit.estimatedProfitAmount }}</p>
       </div>
     }
   </div>
@@ -152,8 +152,8 @@
             [plotOptions]="thresholdChart.plotOptions"
           ></apx-chart>
           <small class="text-muted d-block px-2 pb-2">
-            {{ inventoryBelowThreshold()?.belowThresholdCount ?? 0 }} de
-            {{ inventoryBelowThreshold()?.totalConsidered ?? 0 }} repuestos con umbral.
+            {{ inventoryBelowThreshold()?.sparesBelowThreshold ?? 0 }} de
+            {{ inventoryBelowThreshold()?.sparesWithThreshold ?? 0 }} repuestos con umbral.
           </small>
         </div>
       </div>

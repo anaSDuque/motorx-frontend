@@ -166,7 +166,7 @@ export class AdminMetrics implements OnInit {
       series: [
         {
           name: 'Unidades vendidas',
-          data: this.inventoryTopSelling().map((item) => item.totalQuantitySold),
+          data: this.inventoryTopSelling().map((item) => item.unitsSold),
         },
       ],
       chart: { type: 'bar', height: 360, toolbar: { show: true } },
@@ -179,7 +179,7 @@ export class AdminMetrics implements OnInit {
       },
       dataLabels: { enabled: false },
       xaxis: {
-        categories: this.inventoryTopSelling().map((item) => `${item.spareCode} - ${item.spareName}`),
+        categories: this.inventoryTopSelling().map((item) => `${item.savCode} - ${item.spareName}`),
       },
       colors: ['#0ea5e9'],
       grid: { borderColor: '#e2e8f0' },
@@ -207,7 +207,7 @@ export class AdminMetrics implements OnInit {
       },
       dataLabels: { enabled: false },
       xaxis: {
-        categories: this.inventoryStagnant().map((item) => item.spareCode),
+        categories: this.inventoryStagnant().map((item) => item.savCode),
       },
       colors: ['#f97316', '#fb7185', '#facc15', '#a855f7', '#06b6d4', '#84cc16'],
       grid: { borderColor: '#e2e8f0' },
@@ -222,7 +222,7 @@ export class AdminMetrics implements OnInit {
       series: [
         {
           name: 'Valor monetario',
-          data: [profit.grossSales, profit.estimatedProfit],
+          data: [profit.grossSalesAmount, profit.estimatedProfitAmount],
         },
       ],
       chart: { type: 'bar', height: 300, toolbar: { show: false } },
@@ -254,7 +254,7 @@ export class AdminMetrics implements OnInit {
     };
 
     this.thresholdChart = {
-      series: [belowThreshold.percentage],
+      series: [belowThreshold.belowThresholdPercent],
       chart: { type: 'radialBar', height: 300 },
       labels: ['Stock bajo umbral'],
       colors: ['#dc2626'],
