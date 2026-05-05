@@ -1,6 +1,7 @@
 import { Component, signal, computed, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { PasswordResetService } from '../../services/password-reset.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
@@ -22,6 +23,7 @@ export class ResetPassword implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private codeCountdownTimer: ReturnType<typeof setInterval> | null = null;
   private resendCountdownTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly subscriptions: Subscription[] = [];
 
   // Code digits — 6 separate boxes
   protected readonly codeDigits = signal<string[]>(['', '', '', '', '', '']);
@@ -47,6 +49,7 @@ export class ResetPassword implements OnInit, OnDestroy {
   ngOnInit(): void {
     const rawEmail = this.route.snapshot.queryParamMap.get('email') ?? '';
     this.email.set(rawEmail.trim().toLowerCase());
+    this.syncPasswordSignals();
 
     const sentAt = Number(this.route.snapshot.queryParamMap.get('sentAt') ?? 0);
     if (Number.isFinite(sentAt) && sentAt > 0) {
@@ -65,6 +68,7 @@ export class ResetPassword implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearCodeCountdown();
     this.clearResendCountdown();
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   protected toggleShowPassword(): void {
@@ -74,17 +78,19 @@ export class ResetPassword implements OnInit, OnDestroy {
   // Visibility toggles
   protected readonly showPassword = signal(false);
   protected readonly showConfirmPassword = signal(false);
+  protected readonly passwordValue = signal('');
+  protected readonly confirmPasswordValue = signal('');
 
   // Password validation
-  protected readonly pwdHasUppercase = computed(() => /[A-Z]/.test(this.newPasswordControl.value));
-  protected readonly pwdHasNumber = computed(() => /[0-9]/.test(this.newPasswordControl.value));
-  protected readonly pwdHasSpecial = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.newPasswordControl.value));
-  protected readonly pwdHasMinLength = computed(() => this.newPasswordControl.value.length >= 8);
+  protected readonly pwdHasUppercase = computed(() => /[A-Z]/.test(this.passwordValue()));
+  protected readonly pwdHasNumber = computed(() => /[0-9]/.test(this.passwordValue()));
+  protected readonly pwdHasSpecial = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.passwordValue()));
+  protected readonly pwdHasMinLength = computed(() => this.passwordValue().length >= 8);
   protected readonly pwdValid = computed(
     () => this.pwdHasUppercase() && this.pwdHasNumber() && this.pwdHasSpecial() && this.pwdHasMinLength()
   );
   protected readonly passwordsMatch = computed(
-    () => this.newPasswordControl.value === this.confirmPasswordControl.value && this.confirmPasswordControl.value.length > 0
+    () => this.passwordValue() === this.confirmPasswordValue() && this.confirmPasswordValue().length > 0
   );
 
   protected get newPasswordControl(): FormControl<string> {
@@ -146,7 +152,7 @@ export class ResetPassword implements OnInit, OnDestroy {
       this.error.set('Ingresa el código completo de 6 dígitos');
       return;
     }
-    if (!this.newPasswordControl.value || !this.confirmPasswordControl.value) {
+    if (!this.passwordValue() || !this.confirmPasswordValue()) {
       this.error.set('Completa todos los campos obligatorios');
       return;
     }
@@ -163,7 +169,7 @@ export class ResetPassword implements OnInit, OnDestroy {
     this.error.set('');
 
     this.passwordResetService
-      .resetPassword({ token: this.fullCode(), newPassword: this.newPasswordControl.value })
+      .resetPassword({ token: this.fullCode(), newPassword: this.passwordValue() })
       .subscribe({
         next: () => {
           this.loading.set(false);
@@ -267,5 +273,22 @@ export class ResetPassword implements OnInit, OnDestroy {
     const minutes = Math.floor(safeSeconds / 60);
     const seconds = safeSeconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  private syncPasswordSignals(): void {
+    this.passwordValue.set(this.newPasswordControl.value ?? '');
+    this.confirmPasswordValue.set(this.confirmPasswordControl.value ?? '');
+
+    this.subscriptions.push(
+      this.newPasswordControl.valueChanges.subscribe((value) => {
+        this.passwordValue.set(value ?? '');
+      })
+    );
+
+    this.subscriptions.push(
+      this.confirmPasswordControl.valueChanges.subscribe((value) => {
+        this.confirmPasswordValue.set(value ?? '');
+      })
+    );
   }
 }
