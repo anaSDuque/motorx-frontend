@@ -1,0 +1,26 @@
+<div class="mb-4">
+  <h2 class="fw-bold"><i class="bi bi-wrench-adjustable me-2"></i>Panel tecnico</h2>
+  <p class="text-muted mb-0">Hola, {{ userName() }}. Gestiona ordenes y procedimientos desde aqui.</p>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4 col-md-6">
+    <a routerLink="/technician/orders" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-clipboard-check fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Ordenes de servicio</h6>
+        <p class="text-muted small mb-0">Crea, actualiza costos y completa ordenes por cita.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-lg-4 col-md-6">
+    <a routerLink="/procedures" class="card border-0 quick-card text-decoration-none h-100">
+      <div class="card-body">
+        <i class="bi bi-journal-text fs-3 text-motorx-primary"></i>
+        <h6 class="mt-3 mb-1 fw-semibold">Catalogo de procedimientos</h6>
+        <p class="text-muted small mb-0">Consulta los procedimientos base activos disponibles.</p>
+      </div>
+    </a>
+  </div>
+</div>

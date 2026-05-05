@@ -183,6 +183,8 @@ export class Login {
       this.router.navigate(['/warehouse/home']);
     } else if (normalizedRole === Role.RECEPTIONIST || normalizedRole === Role.EMPLOYEE) {
       this.router.navigate(['/reception']);
+    } else if (normalizedRole === Role.TECHNICIAN) {
+      this.router.navigate(['/technician/home']);
     } else {
       this.router.navigate(['/dashboard']);
     }

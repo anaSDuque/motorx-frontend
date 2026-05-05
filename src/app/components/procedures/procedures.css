@@ -1,0 +1,13 @@
+.badge-active {
+  background-color: #1b7f3a;
+}
+
+.badge-inactive {
+  background-color: #6c757d;
+}
+
+.procedure-check {
+  border: 1px solid var(--mx-border-light);
+  border-radius: 10px;
+  padding: 8px 10px;
+}

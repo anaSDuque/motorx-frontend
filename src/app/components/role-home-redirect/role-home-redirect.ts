@@ -30,6 +30,11 @@ export class RoleHomeRedirect implements OnInit {
       return;
     }
 
+    if (role === Role.TECHNICIAN) {
+      this.router.navigate(['/technician/home']);
+      return;
+    }
+
     this.router.navigate(['/dashboard']);
   }
 }

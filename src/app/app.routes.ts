@@ -5,6 +5,7 @@ import {
   guestGuard,
   warehouseGuard,
   receptionGuard,
+  technicianGuard,
 } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -69,6 +70,30 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./components/warehouse-home/warehouse-home').then(
             (m) => m.WarehouseHome
+          ),
+      },
+      {
+        path: 'technician/home',
+        canActivate: [technicianGuard],
+        loadComponent: () =>
+          import('./components/technician-home/technician-home').then(
+            (m) => m.TechnicianHome
+          ),
+      },
+      {
+        path: 'technician/orders',
+        canActivate: [technicianGuard],
+        loadComponent: () =>
+          import('./components/service-orders/service-orders').then(
+            (m) => m.ServiceOrders
+          ),
+      },
+      {
+        path: 'procedures',
+        canActivate: [technicianGuard],
+        loadComponent: () =>
+          import('./components/procedures/procedures').then(
+            (m) => m.Procedures
           ),
       },
       {
