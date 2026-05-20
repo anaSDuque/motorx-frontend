@@ -62,6 +62,10 @@ export class Layout implements OnInit {
     return role === Role.RECEPTIONIST || role === Role.EMPLOYEE;
   }
 
+  protected get isTechnician(): boolean {
+    return this.authService.getStoredRole() === Role.TECHNICIAN;
+  }
+
   protected get isClient(): boolean {
     return !this.isAdmin && !this.isEmployee;
   }

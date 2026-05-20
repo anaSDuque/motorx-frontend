@@ -20,6 +20,10 @@ function isReceptionRole(role: Role | null): boolean {
   return role === Role.RECEPTIONIST || role === Role.EMPLOYEE;
 }
 
+function isTechnicianRole(role: Role | null): boolean {
+  return role === Role.TECHNICIAN;
+}
+
 function redirectToRoleHome(router: Router, role: Role | null): void {
   if (role === Role.ADMIN) {
     router.navigate(['/admin/dashboard']);
@@ -33,6 +37,11 @@ function redirectToRoleHome(router: Router, role: Role | null): void {
 
   if (isReceptionRole(role)) {
     router.navigate(['/reception']);
+    return;
+  }
+
+  if (isTechnicianRole(role)) {
+    router.navigate(['/technician/home']);
     return;
   }
   router.navigate(['/dashboard']);
@@ -105,6 +114,19 @@ export const receptionGuard: CanActivateFn = () => {
   const role = authService.getStoredRole();
 
   if (authService.isLoggedIn() && (role === Role.ADMIN || isReceptionRole(role))) {
+    return true;
+  }
+
+  router.navigate(['/dashboard']);
+  return false;
+};
+
+export const technicianGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const role = authService.getStoredRole();
+
+  if (authService.isLoggedIn() && (role === Role.ADMIN || isTechnicianRole(role))) {
     return true;
   }
 

@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, ViewChild } from '@angular/core';
+import { Component, signal, computed, inject, ViewChild, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -17,6 +17,7 @@ import { AboutUs } from '../about-us/about-us';
 })
 export class Login {
   private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  private static readonly RESEND_COOLDOWN_SECONDS = 40;
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -34,10 +35,16 @@ export class Login {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly needs2FA = signal(false);
+  protected readonly resendLoading = signal(false);
+  protected readonly resendMessage = signal('');
+  protected readonly resendCooldownSeconds = signal(0);
+  protected readonly formattedResendCooldown = computed(() => this.formatAsMinutesSeconds(this.resendCooldownSeconds()));
+  protected readonly canResend = computed(() => this.resendCooldownSeconds() === 0);
   protected readonly captchaSolved = signal(false);
   protected readonly showPassword = signal(false);
   protected readonly showAboutUsModal = signal(false);
   @ViewChild(MathCaptcha) private captchaComponent?: MathCaptcha;
+  private resendCountdownTimer: ReturnType<typeof setInterval> | null = null;
 
   private refreshCaptcha(): void {
     this.captchaSolved.set(false);
@@ -97,6 +104,7 @@ export class Login {
           this.navigateByRole(this.authService.getStoredRole() ?? res.role);
         } else {
           this.needs2FA.set(true);
+          this.startResendCooldown(Login.RESEND_COOLDOWN_SECONDS);
         }
       },
       error: (err) => {
@@ -127,6 +135,33 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
+        this.error.set(this.notificationService.handleHttpError(err));
+      },
+    });
+  }
+
+  protected onResend2FA(): void {
+    if (!this.canResend() || this.resendLoading()) return;
+
+    const email = this.emailControl.value.trim().toLowerCase();
+    if (!Login.EMAIL_REGEX.test(email)) {
+      this.error.set('Ingresa un correo electrónico válido');
+      return;
+    }
+
+    this.resendLoading.set(true);
+    this.error.set('');
+    this.resendMessage.set('');
+    this.startResendCooldown(Login.RESEND_COOLDOWN_SECONDS);
+
+    this.authService.resend2FA(email).subscribe({
+      next: () => {
+        this.resendLoading.set(false);
+        this.codeDigits.set(['', '', '', '', '', '']);
+        this.resendMessage.set('Código reenviado. Revisa tu correo.');
+      },
+      error: (err) => {
+        this.resendLoading.set(false);
         this.error.set(this.notificationService.handleHttpError(err));
       },
     });
@@ -174,6 +209,39 @@ export class Login {
     }
   }
 
+  private startResendCooldown(seconds: number): void {
+    this.clearResendCountdown();
+    this.resendCooldownSeconds.set(seconds);
+
+    if (seconds <= 0) return;
+
+    this.resendCountdownTimer = setInterval(() => {
+      const next = this.resendCooldownSeconds() - 1;
+      this.resendCooldownSeconds.set(Math.max(next, 0));
+
+      if (next <= 0) {
+        this.clearResendCountdown();
+      }
+    }, 1000);
+  }
+
+  private clearResendCountdown(): void {
+    if (this.resendCountdownTimer) {
+      clearInterval(this.resendCountdownTimer);
+      this.resendCountdownTimer = null;
+    }
+  }
+
+  private formatAsMinutesSeconds(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  ngOnDestroy(): void {
+    this.clearResendCountdown();
+  }
+
   private navigateByRole(role: Role | string): void {
     const normalizedRole = this.normalizeRole(role);
 
@@ -183,6 +251,8 @@ export class Login {
       this.router.navigate(['/warehouse/home']);
     } else if (normalizedRole === Role.RECEPTIONIST || normalizedRole === Role.EMPLOYEE) {
       this.router.navigate(['/reception']);
+    } else if (normalizedRole === Role.TECHNICIAN) {
+      this.router.navigate(['/technician/home']);
     } else {
       this.router.navigate(['/dashboard']);
     }

@@ -1,0 +1,222 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h2 class="fw-bold mb-1"><i class="bi bi-clipboard2-check me-2"></i>Servicios del taller</h2>
+    <p class="text-muted mb-0">Gestiona los servicios base y sus procedimientos.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openCreateForm()">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo servicio
+  </button>
+</div>
+
+@if (success()) {
+  <div class="alert alert-success alert-dismissible fade show">
+    {{ success() }}
+    <button type="button" class="btn-close" (click)="success.set('')"></button>
+  </div>
+}
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible fade show">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')"></button>
+  </div>
+}
+
+@if (showForm()) {
+  <div class="card border-0 mb-4">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">{{ editingId() ? 'Editar servicio' : 'Crear servicio' }}</h5>
+      <button class="btn btn-sm btn-outline-secondary" (click)="cancelForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="card-body">
+      @if (formError()) {
+        <div class="alert alert-danger py-2">{{ formError() }}</div>
+      }
+      <form [formGroup]="serviceForm" (ngSubmit)="submitForm()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" formControlName="name" maxlength="150" />
+            @if (hasError('name', 'required')) {
+              <small class="text-danger">El nombre es obligatorio.</small>
+            }
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Duracion (min)</label>
+            <input type="number" class="form-control" formControlName="estimatedDurationMinutes" min="1" />
+            @if (hasError('estimatedDurationMinutes', 'min')) {
+              <small class="text-danger">Debe ser mayor a 0.</small>
+            }
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Precio base</label>
+            <input type="number" class="form-control" formControlName="basePrice" min="0" step="0.01" />
+            @if (hasError('basePrice', 'min')) {
+              <small class="text-danger">No puede ser negativo.</small>
+            }
+          </div>
+          <div class="col-md-9">
+            <label class="form-label">Descripcion</label>
+            <textarea class="form-control" formControlName="description" rows="2" maxlength="1000"></textarea>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" formControlName="active" id="serviceActive" />
+              <label class="form-check-label" for="serviceActive">Activo</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Procedimientos base</h6>
+            <div class="d-flex align-items-center gap-2">
+              @if (proceduresLoading()) {
+                <span class="spinner-border spinner-border-sm"></span>
+              }
+              <button class="btn btn-sm btn-outline-primary" type="button" (click)="openProcedureModal()">
+                <i class="bi bi-plus-lg me-1"></i>Nuevo procedimiento
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-2 align-items-end">
+            <div class="col-md-8">
+              <label class="form-label">Selecciona procedimiento</label>
+              <select class="form-select" [formControl]="procedureSelectControl" (change)="addSelectedProcedure()">
+                <option [ngValue]="null" disabled>Selecciona</option>
+                @for (procedure of procedures(); track procedure.id) {
+                  <option [ngValue]="procedure.id">{{ procedure.name }}</option>
+                }
+              </select>
+              @if (procedures().length === 0) {
+                <small class="text-muted">No hay procedimientos disponibles.</small>
+              }
+            </div>
+          </div>
+
+          <div class="mt-3">
+            @if (selectedProcedureIds().length === 0) {
+              <div class="text-muted">Sin procedimientos base seleccionados.</div>
+            } @else {
+              <div class="d-flex flex-wrap gap-2">
+                @for (procedureId of selectedProcedureIds(); track procedureId) {
+                  <span class="badge rounded-pill bg-light text-dark border">
+                    {{ getProcedureName(procedureId) }}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-link text-danger ms-1 p-0"
+                      (click)="removeSelectedProcedure(procedureId)"
+                      aria-label="Quitar"
+                    >
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary me-2" type="submit" [disabled]="formLoading()">
+            @if (formLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            {{ editingId() ? 'Actualizar' : 'Crear' }}
+          </button>
+          <button class="btn btn-outline-secondary" type="button" (click)="cancelForm()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showProcedureModal()) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal d-block fade show" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Nuevo procedimiento</h5>
+          <button type="button" class="btn-close" (click)="closeProcedureModal()"></button>
+        </div>
+        <div class="modal-body">
+          @if (procedureFormError()) {
+            <div class="alert alert-danger py-2">{{ procedureFormError() }}</div>
+          }
+          <form [formGroup]="procedureForm" (ngSubmit)="submitProcedureForm()">
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input class="form-control" formControlName="name" maxlength="150" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descripcion</label>
+              <textarea class="form-control" formControlName="description" rows="3" maxlength="1000"></textarea>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" formControlName="active" id="procedureActive" />
+              <label class="form-check-label" for="procedureActive">Activo</label>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-primary" type="submit" [disabled]="procedureFormLoading()">
+                @if (procedureFormLoading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Crear
+              </button>
+              <button class="btn btn-outline-secondary" type="button" (click)="closeProcedureModal()">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (loading()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  <div class="card border-0">
+    <div class="card-header bg-transparent fw-semibold">Listado de servicios</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Duracion</th>
+            <th>Precio base</th>
+            <th>Estado</th>
+            <th>Procedimientos base</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (service of services(); track service.id) {
+            <tr>
+              <td class="fw-semibold">{{ service.name }}</td>
+              <td>{{ service.estimatedDurationMinutes }} min</td>
+              <td>{{ service.basePrice }}</td>
+              <td>
+                <span class="badge" [class]="service.active ? 'badge-active' : 'badge-inactive'">
+                  {{ service.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="small text-muted">{{ getProcedureSummary(service) }}</div>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary me-2" type="button" (click)="openEditForm(service)">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" type="button" (click)="deleteService(service.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No hay servicios registrados.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

@@ -49,6 +49,10 @@ export class AuthService {
     );
   }
 
+  resend2FA(email: string): Observable<string> {
+    return this.http.post(`${BASE_API}/auth/resend-2fa`, { email }, { responseType: 'text' });
+  }
+
   register(dto: RegisterUserDTO): Observable<AuthResponseDTO> {
     return this.http.post<AuthResponseDTO>(`${BASE_API}/auth/register`, dto).pipe(
       tap((res) => this.handleAuthResponse(res))

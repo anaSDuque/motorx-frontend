@@ -1,6 +1,6 @@
 export interface ConfirmReceptionDTO {
   licensePlate: string;
-  verificationCode: string;
+  code: string;
 }
 
 export interface ReceptionActionResponseDTO {

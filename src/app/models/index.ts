@@ -12,3 +12,6 @@ export * from './log.model';
 export * from './metrics.model';
 export * from './notification.model';
 export * from './chatbot.model';
+export * from './procedure.model';
+export * from './order.model';
+export * from './service.model';
