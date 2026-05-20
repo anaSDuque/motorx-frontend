@@ -1,10 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReceptionService } from '../../services/reception.service';
-import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { AppointmentResponseDTO, AppointmentStatus } from '../../models';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-reception',
@@ -16,7 +14,6 @@ import { forkJoin } from 'rxjs';
 export class Reception implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly receptionService = inject(ReceptionService);
-  private readonly appointmentService = inject(AdminAppointmentService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -26,7 +23,7 @@ export class Reception implements OnInit {
 
   protected readonly confirmForm = this.fb.group({
     licensePlate: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]{5,8}$/)]],
-    verificationCode: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
+    code: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
   });
 
   protected readonly loadingInitiate = signal(false);
@@ -53,13 +50,9 @@ export class Reception implements OnInit {
     this.loadingAppointments.set(true);
     this.error.set('');
 
-    const dates = this.getReceptionDates();
-    const requests = dates.map((date) => this.appointmentService.getAgenda(date));
-
-    forkJoin(requests).subscribe({
-      next: (results) => {
-        const flattened = results.flat();
-        const filtered = flattened.filter((apt) => this.isReceptionRangeStatus(apt.status));
+    this.receptionService.getUpcomingAppointments().subscribe({
+      next: (data) => {
+        const filtered = data.filter((apt) => this.isReceptionRangeStatus(apt.status));
         const sorted = filtered.sort((a, b) => {
           const dateA = `${a.appointmentDate}T${a.startTime}`;
           const dateB = `${b.appointmentDate}T${b.startTime}`;
@@ -111,16 +104,6 @@ export class Reception implements OnInit {
     return `${apt.appointmentDate} ${apt.startTime} - ${apt.vehiclePlate} - ${apt.clientFullName}`;
   }
 
-  private getReceptionDates(): string[] {
-    const today = new Date();
-    const dates = [0, 1, 2].map((offset) => {
-      const next = new Date(today);
-      next.setDate(today.getDate() + offset);
-      return next.toISOString().split('T')[0];
-    });
-    return dates;
-  }
-
   private isReceptionRangeStatus(status: AppointmentStatus): boolean {
     return [AppointmentStatus.SCHEDULED, AppointmentStatus.AWAITING_CONFIRMATION, AppointmentStatus.IN_PROGRESS].includes(status);
   }
@@ -134,7 +117,7 @@ export class Reception implements OnInit {
 
     const raw = this.confirmForm.getRawValue();
     const licensePlate = raw.licensePlate?.trim().toUpperCase() ?? '';
-    const verificationCode = raw.verificationCode?.trim() ?? '';
+    const code = raw.code?.trim() ?? '';
 
     this.loadingConfirm.set(true);
     this.error.set('');
@@ -143,13 +126,13 @@ export class Reception implements OnInit {
     this.receptionService
       .confirmReception({
         licensePlate,
-        verificationCode,
+        code,
       })
       .subscribe({
         next: (res) => {
           this.loadingConfirm.set(false);
           this.success.set(res.message || 'Recepción confirmada correctamente');
-          this.confirmForm.reset({ licensePlate: '', verificationCode: '' });
+          this.confirmForm.reset({ licensePlate: '', code: '' });
         },
         error: (err) => {
           this.loadingConfirm.set(false);
@@ -163,7 +146,7 @@ export class Reception implements OnInit {
     return control.touched && control.hasError(errorName);
   }
 
-  protected hasConfirmError(controlName: 'licensePlate' | 'verificationCode', errorName: string): boolean {
+  protected hasConfirmError(controlName: 'licensePlate' | 'code', errorName: string): boolean {
     const control = this.confirmForm.controls[controlName];
     return control.touched && control.hasError(errorName);
   }

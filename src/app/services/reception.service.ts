@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BASE_API } from './api.config';
-import { ConfirmReceptionDTO, ReceptionActionResponseDTO } from '../models/reception.model';
+import { ConfirmReceptionDTO, ReceptionActionResponseDTO, AppointmentResponseDTO } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ReceptionService {
@@ -15,5 +15,9 @@ export class ReceptionService {
 
   confirmReception(dto: ConfirmReceptionDTO): Observable<ReceptionActionResponseDTO> {
     return this.http.post<ReceptionActionResponseDTO>(`${this.baseUrl}/confirm`, dto);
+  }
+
+  getUpcomingAppointments(): Observable<AppointmentResponseDTO[]> {
+    return this.http.get<AppointmentResponseDTO[]>(`${this.baseUrl}/appointments/upcoming`);
   }
 }

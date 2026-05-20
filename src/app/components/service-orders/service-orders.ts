@@ -5,13 +5,12 @@ import { OrderService } from '../../services/order.service';
 import { ProcedureService } from '../../services/procedure.service';
 import { SpareService } from '../../services/spare.service';
 import { AuthService } from '../../services/auth.service';
-import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { NotificationService } from '../../services/notification.service';
 import {
   AddProcedureToOrderDTO,
   AddSpareToOrderDTO,
   OrderResponseDTO,
-  AppointmentResponseDTO,
+  TechnicianAppointmentSummaryDTO,
   ProcedureResponseDTO,
   SpareResponseDTO,
   Role,
@@ -31,11 +30,10 @@ export class ServiceOrders implements OnInit {
   private readonly procedureService = inject(ProcedureService);
   private readonly spareService = inject(SpareService);
   private readonly authService = inject(AuthService);
-  private readonly adminAppointmentService = inject(AdminAppointmentService);
   private readonly notificationService = inject(NotificationService);
 
   protected readonly order = signal<OrderResponseDTO | null>(null);
-  protected readonly appointment = signal<AppointmentResponseDTO | null>(null);
+  protected readonly appointment = signal<TechnicianAppointmentSummaryDTO | null>(null);
   protected readonly procedures = signal<ProcedureResponseDTO[]>([]);
   protected readonly spares = signal<SpareResponseDTO[]>([]);
   protected readonly loading = signal(false);
@@ -286,7 +284,7 @@ export class ServiceOrders implements OnInit {
     this.appointmentLoading.set(true);
     this.appointmentError.set('');
 
-    this.adminAppointmentService.getAppointmentById(appointmentId).subscribe({
+    this.orderService.getAppointmentSummary(appointmentId).subscribe({
       next: (data) => {
         this.appointment.set(data);
         this.appointmentLoading.set(false);

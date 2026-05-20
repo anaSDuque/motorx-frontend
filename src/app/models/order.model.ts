@@ -50,3 +50,21 @@ export interface TechnicianDailyOrderDTO {
   startTime: string;
   processStartedAt: string;
 }
+
+export interface TechnicianAppointmentSummaryDTO {
+  appointmentId: number;
+  appointmentType: string;
+  status: string;
+  appointmentDate: string;
+  startTime: string;
+  endTime: string;
+  vehicleId: number;
+  vehiclePlate: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  currentMileage: number;
+  clientNotes: string | null;
+  clientFullName: string;
+  technicianId: number | null;
+  technicianFullName: string | null;
+}

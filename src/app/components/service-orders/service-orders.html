@@ -75,21 +75,38 @@
   </div>
 
   <div class="card border-0 mb-4">
-    <div class="card-header bg-transparent fw-semibold">Comentarios del cliente</div>
+    <div class="card-header bg-transparent fw-semibold">Detalle de cita</div>
     <div class="card-body">
       @if (appointmentLoading()) {
         <div class="text-muted">
           <span class="spinner-border spinner-border-sm me-2"></span>
-          Cargando comentarios...
+          Cargando detalles...
         </div>
       } @else if (appointment(); as appt) {
-        @if (appt.clientNotes) {
-          <p class="mb-0">{{ appt.clientNotes }}</p>
-        } @else {
-          <p class="text-muted mb-0">Sin comentarios del cliente.</p>
-        }
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="text-muted small">Cliente</div>
+            <div class="fw-semibold">{{ appt.clientFullName }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-muted small">Vehiculo</div>
+            <div class="fw-semibold">{{ appt.vehiclePlate }} · {{ appt.vehicleBrand }} {{ appt.vehicleModel }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-muted small">Fecha y hora</div>
+            <div class="fw-semibold">{{ appt.appointmentDate }} {{ appt.startTime }} - {{ appt.endTime }}</div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="text-muted small">Notas del cliente</div>
+          @if (appt.clientNotes) {
+            <p class="mb-0">{{ appt.clientNotes }}</p>
+          } @else {
+            <p class="text-muted mb-0">Sin comentarios del cliente.</p>
+          }
+        </div>
       } @else {
-        <p class="text-muted mb-0">Sin comentarios del cliente.</p>
+        <p class="text-muted mb-0">Sin detalles de cita.</p>
       }
 
       @if (appointmentError()) {
