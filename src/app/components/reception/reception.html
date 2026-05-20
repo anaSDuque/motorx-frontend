@@ -1,5 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3 class="fw-bold mb-0"><i class="bi bi-clipboard-check me-2"></i>Recepción de motos</h3>
+  <button class="btn btn-outline-primary" type="button" (click)="loadUpcomingAppointments()" [disabled]="loadingAppointments()">
+    @if (loadingAppointments()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+    Actualizar citas
+  </button>
 </div>
 
 @if (success()) {
@@ -15,6 +19,36 @@
   </div>
 }
 
+<div class="card border-0 mb-4">
+  <div class="card-header bg-transparent fw-semibold">Citas próximas (hoy a pasadomañana)</div>
+  <div class="card-body">
+    @if (loadingAppointments()) {
+      <div class="text-muted">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Cargando citas...
+      </div>
+    } @else if (upcomingAppointments().length === 0) {
+      <div class="text-muted">No hay citas en el rango de recepción.</div>
+    } @else {
+      <div class="reception-list">
+        @for (apt of upcomingAppointments(); track apt.id) {
+          <div class="reception-item">
+            <div>
+              <div class="fw-semibold">{{ apt.appointmentDate }} · {{ apt.startTime }} - {{ apt.endTime }}</div>
+              <div class="text-muted small">
+                {{ apt.vehiclePlate }} · {{ apt.vehicleBrand }} {{ apt.vehicleModel }} · {{ apt.clientFullName }}
+              </div>
+            </div>
+            <button class="btn btn-sm btn-primary" type="button" (click)="goToReception(apt.id)">
+              Recepcionar
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
 <div class="row g-4">
   <div class="col-lg-6">
     <div class="card border-0 h-100">
@@ -25,10 +59,15 @@
         </p>
         <form [formGroup]="initiateForm" (ngSubmit)="initiateReception()">
           <div class="mb-3">
-            <label class="form-label">ID de cita</label>
-            <input type="number" class="form-control" formControlName="appointmentId" min="1" />
+            <label class="form-label">Cita</label>
+            <select class="form-select" formControlName="appointmentId">
+              <option [ngValue]="null" disabled>Selecciona una cita</option>
+              @for (apt of upcomingAppointments(); track apt.id) {
+                <option [ngValue]="apt.id">{{ getAppointmentLabel(apt) }}</option>
+              }
+            </select>
             @if (hasInitiateError('appointmentId', 'required') || hasInitiateError('appointmentId', 'min')) {
-              <small class="text-danger">Ingresa un ID mayor a 0.</small>
+              <small class="text-danger">Selecciona una cita válida.</small>
             }
           </div>
           <button class="btn btn-primary" type="submit" [disabled]="loadingInitiate()">

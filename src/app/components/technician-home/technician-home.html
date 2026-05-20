@@ -24,3 +24,43 @@
     </a>
   </div>
 </div>
+
+<div class="card border-0 mt-4">
+  <div class="card-header bg-transparent fw-semibold">Motos asignadas hoy (recepcion confirmada)</div>
+  <div class="card-body">
+    @if (loadingOrders()) {
+      <div class="text-muted">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Cargando asignaciones...
+      </div>
+    }
+
+    @if (errorOrders()) {
+      <div class="alert alert-danger mb-3">
+        {{ errorOrders() }}
+      </div>
+    }
+
+    @if (!loadingOrders() && todayOrders().length === 0) {
+      <div class="text-muted">No hay motos asignadas para hoy.</div>
+    } @else if (!loadingOrders()) {
+      <div class="list-group">
+        @for (item of todayOrders(); track item.appointmentId) {
+          <div class="list-group-item d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div>
+              <div class="fw-semibold">{{ item.licensePlate }} · {{ item.brand }} {{ item.model }}</div>
+              <div class="text-muted small">Cita #{{ item.appointmentId }}</div>
+            </div>
+            <a
+              class="btn btn-sm btn-primary"
+              routerLink="/technician/orders"
+              [queryParams]="{ appointmentId: item.appointmentId }"
+            >
+              Abrir orden
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

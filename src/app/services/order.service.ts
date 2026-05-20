@@ -7,6 +7,7 @@ import {
   AddSpareToOrderDTO,
   UpdateOrderProcedureCostDTO,
   OrderResponseDTO,
+  TechnicianDailyOrderDTO,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -36,5 +37,9 @@ export class OrderService {
 
   completeOrder(orderId: number): Observable<OrderResponseDTO> {
     return this.http.post<OrderResponseDTO>(`${this.baseUrl}/${orderId}/complete`, {});
+  }
+
+  getMyTodayOrders(): Observable<TechnicianDailyOrderDTO[]> {
+    return this.http.get<TechnicianDailyOrderDTO[]>(`${this.baseUrl}/my/today`);
   }
 }

@@ -7,7 +7,7 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
 import { NotificationService } from '../../services/notification.service';
 
 const CODE_VALIDITY_SECONDS = 10 * 60;
-const RESEND_COOLDOWN_SECONDS = 30;
+const RESEND_COOLDOWN_SECONDS = 40;
 
 @Component({
   selector: 'app-reset-password',

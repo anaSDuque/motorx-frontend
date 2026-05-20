@@ -35,10 +35,10 @@ export class ProcedureService {
   }
 
   getProceduresByService(serviceId: number): Observable<ProcedureResponseDTO[]> {
-    return this.http.get<ProcedureResponseDTO[]>(`${this.baseUrl}/service/${serviceId}`);
+    return this.http.get<ProcedureResponseDTO[]>(`${BASE_API}/v1/services/${serviceId}/procedures`);
   }
 
   updateServiceProcedures(serviceId: number, dto: UpdateServiceProceduresDTO): Observable<ProcedureResponseDTO[]> {
-    return this.http.put<ProcedureResponseDTO[]>(`${this.baseUrl}/service/${serviceId}`, dto);
+    return this.http.put<ProcedureResponseDTO[]>(`${BASE_API}/v1/services/${serviceId}/procedures`, dto);
   }
 }

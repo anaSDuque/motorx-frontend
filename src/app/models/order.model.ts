@@ -39,3 +39,14 @@ export interface OrderResponseDTO {
   procedures: OrderProcedureResponseDTO[];
   spares: OrderSpareResponseDTO[];
 }
+
+export interface TechnicianDailyOrderDTO {
+  appointmentId: number;
+  orderId: number;
+  licensePlate: string;
+  brand: string;
+  model: string;
+  appointmentDate: string;
+  startTime: string;
+  processStartedAt: string;
+}

@@ -1,0 +1,16 @@
+.procedure-check {
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  background: #fafafa;
+}
+
+.badge-active {
+  background: #d1f3e0;
+  color: #137a4a;
+}
+
+.badge-inactive {
+  background: #f6d7d7;
+  color: #9b1c1c;
+}

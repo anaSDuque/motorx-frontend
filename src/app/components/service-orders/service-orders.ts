@@ -1,14 +1,17 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { OrderService } from '../../services/order.service';
 import { ProcedureService } from '../../services/procedure.service';
 import { SpareService } from '../../services/spare.service';
 import { AuthService } from '../../services/auth.service';
+import { AdminAppointmentService } from '../../services/admin-appointment.service';
 import { NotificationService } from '../../services/notification.service';
 import {
   AddProcedureToOrderDTO,
   AddSpareToOrderDTO,
   OrderResponseDTO,
+  AppointmentResponseDTO,
   ProcedureResponseDTO,
   SpareResponseDTO,
   Role,
@@ -23,27 +26,29 @@ import {
 })
 export class ServiceOrders implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   private readonly orderService = inject(OrderService);
   private readonly procedureService = inject(ProcedureService);
   private readonly spareService = inject(SpareService);
   private readonly authService = inject(AuthService);
+  private readonly adminAppointmentService = inject(AdminAppointmentService);
   private readonly notificationService = inject(NotificationService);
 
   protected readonly order = signal<OrderResponseDTO | null>(null);
+  protected readonly appointment = signal<AppointmentResponseDTO | null>(null);
   protected readonly procedures = signal<ProcedureResponseDTO[]>([]);
   protected readonly spares = signal<SpareResponseDTO[]>([]);
   protected readonly loading = signal(false);
+  protected readonly appointmentLoading = signal(false);
+  protected readonly appointmentError = signal('');
   protected readonly error = signal('');
   protected readonly success = signal('');
   protected readonly procedureCostEdits = signal<Record<number, number>>({});
+  protected readonly pendingProcedures = signal<Array<{ id: number; cost: number }>>([]);
+  protected readonly procedureSelectControl = this.fb.control<number | null>(null);
 
   protected readonly orderForm = this.fb.group({
     appointmentId: [null as number | null, [Validators.required, Validators.min(1)]],
-  });
-
-  protected readonly addProcedureForm = this.fb.group({
-    procedureId: [null as number | null, [Validators.required]],
-    cost: [0, [Validators.required, Validators.min(0)]],
   });
 
   protected readonly addSpareForm = this.fb.group({
@@ -56,6 +61,7 @@ export class ServiceOrders implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogs();
+    this.prefillAppointmentFromQuery();
   }
 
   private loadCatalogs(): void {
@@ -90,6 +96,7 @@ export class ServiceOrders implements OnInit {
       next: (data) => {
         this.loading.set(false);
         this.setOrder(data);
+        this.loadAppointmentDetails(data.appointmentId);
       },
       error: (err) => {
         this.loading.set(false);
@@ -98,19 +105,51 @@ export class ServiceOrders implements OnInit {
     });
   }
 
-  protected addProcedure(): void {
-    if (!this.canEditOrder() || !this.order()) return;
+  protected queueProcedure(): void {
+    const selectedId = Number(this.procedureSelectControl.value);
+    if (!selectedId) return;
 
-    this.addProcedureForm.markAllAsTouched();
-    if (this.addProcedureForm.invalid) {
-      this.error.set('Completa los datos del procedimiento.');
+    if (this.isProcedureInOrder(selectedId)) {
+      this.error.set('El procedimiento ya esta en la orden.');
+      this.procedureSelectControl.setValue(null);
       return;
     }
 
-    const raw = this.addProcedureForm.getRawValue();
+    this.pendingProcedures.update((current) =>
+      current.some((item) => item.id === selectedId) ? current : [...current, { id: selectedId, cost: 0 }]
+    );
+    this.procedureSelectControl.setValue(null);
+  }
+
+  protected updatePendingCost(procedureId: number, value: string): void {
+    const numeric = Number(value);
+    this.pendingProcedures.update((current) =>
+      current.map((item) =>
+        item.id === procedureId
+          ? { ...item, cost: Number.isFinite(numeric) && numeric >= 0 ? numeric : 0 }
+          : item
+      )
+    );
+  }
+
+  protected removePendingProcedure(procedureId: number): void {
+    this.pendingProcedures.update((current) => current.filter((item) => item.id !== procedureId));
+  }
+
+  protected addPendingProcedure(procedureId: number): void {
+    if (!this.canEditOrder() || !this.order()) return;
+
+    const pending = this.pendingProcedures().find((item) => item.id === procedureId);
+    if (!pending) return;
+
+    if (pending.cost < 0) {
+      this.error.set('Ingresa un costo valido.');
+      return;
+    }
+
     const dto: AddProcedureToOrderDTO = {
-      procedureId: Number(raw.procedureId),
-      cost: Number(raw.cost),
+      procedureId: pending.id,
+      cost: Number(pending.cost),
     };
 
     this.loading.set(true);
@@ -119,8 +158,8 @@ export class ServiceOrders implements OnInit {
     this.orderService.addProcedure(this.order()!.id, dto).subscribe({
       next: (data) => {
         this.loading.set(false);
-        this.addProcedureForm.reset({ procedureId: null, cost: 0 });
         this.setOrder(data);
+        this.pendingProcedures.update((current) => current.filter((item) => item.id !== procedureId));
         this.success.set('Procedimiento agregado correctamente.');
       },
       error: (err) => {
@@ -214,6 +253,11 @@ export class ServiceOrders implements OnInit {
     }));
   }
 
+  protected getProcedureName(procedureId: number): string {
+    const procedure = this.procedures().find((item) => item.id === procedureId);
+    return procedure?.name ?? `#${procedureId}`;
+  }
+
   private setOrder(order: OrderResponseDTO): void {
     this.order.set(order);
     const costMap: Record<number, number> = {};
@@ -221,5 +265,36 @@ export class ServiceOrders implements OnInit {
       costMap[procedure.procedureId] = procedure.cost;
     });
     this.procedureCostEdits.set(costMap);
+  }
+
+  private isProcedureInOrder(procedureId: number): boolean {
+    return (this.order()?.procedures ?? []).some((item) => item.procedureId === procedureId);
+  }
+
+  private prefillAppointmentFromQuery(): void {
+    const raw = this.route.snapshot.queryParamMap.get('appointmentId');
+    const appointmentId = raw ? Number(raw) : null;
+    if (!appointmentId || Number.isNaN(appointmentId) || appointmentId < 1) {
+      return;
+    }
+
+    this.orderForm.patchValue({ appointmentId });
+    this.loadOrder();
+  }
+
+  private loadAppointmentDetails(appointmentId: number): void {
+    this.appointmentLoading.set(true);
+    this.appointmentError.set('');
+
+    this.adminAppointmentService.getAppointmentById(appointmentId).subscribe({
+      next: (data) => {
+        this.appointment.set(data);
+        this.appointmentLoading.set(false);
+      },
+      error: (err) => {
+        this.appointmentLoading.set(false);
+        this.appointmentError.set(this.notificationService.handleHttpError(err));
+      },
+    });
   }
 }

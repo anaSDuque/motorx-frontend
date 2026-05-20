@@ -201,6 +201,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/services',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./components/admin-services/admin-services').then(
+            (m) => m.AdminServices
+          ),
+      },
+      {
         path: 'admin/unplanned',
         canActivate: [adminGuard],
         loadComponent: () =>

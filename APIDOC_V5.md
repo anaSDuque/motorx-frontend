@@ -16,6 +16,7 @@ En esta version se incorporan 4 bloques principales:
 2. **Relacion servicios - procedimientos base** para precargar procedimientos por tipo de servicio.
 3. **Flujo de ordenes de servicio**: crear orden por cita, agregar procedimientos y repuestos, recalcular totales y completar orden.
 4. **Seguridad y auditoria**: rol `TECHNICIAN`, rutas protegidas y nuevas acciones de log para ordenes de servicio.
+5. **Catalogo de servicios del taller (admin)**: CRUD de servicios y gestion de procedimientos base por servicio.
 
 ---
 
@@ -62,6 +63,10 @@ En esta version se incorporan 4 bloques principales:
   - `procedureId`, `procedureName`, `cost`
 - `OrderSpareResponseDTO`
   - `spareId`, `spareName`, `quantity`, `unitPrice`, `lineTotal`
+- `TechnicianDailyOrderDTO`
+  - `appointmentId`, `orderId`
+  - `licensePlate`, `brand`, `model`
+  - `appointmentDate`, `startTime`, `processStartedAt`
 
 ### 3.2 Procedimientos
 
@@ -77,6 +82,26 @@ En esta version se incorporan 4 bloques principales:
   - `id`, `name`, `description`, `active`, `createdAt`, `updatedAt`
 - `UpdateServiceProceduresDTO`
   - `procedureIds` (required, lista de IDs)
+
+### 3.3 Servicios del taller
+
+- `CreateServiceDTO`
+  - `name` (required, max 150)
+  - `description` (max 1000)
+  - `estimatedDurationMinutes` (required, >= 1)
+  - `basePrice` (required, >= 0)
+  - `active` (opcional, default `true`)
+  - `procedureIds` (opcional, lista de IDs)
+- `UpdateServiceDTO`
+  - `name` (required, max 150)
+  - `description` (max 1000)
+  - `estimatedDurationMinutes` (required, >= 1)
+  - `basePrice` (required, >= 0)
+  - `active` (opcional)
+- `ServiceResponseDTO`
+  - `id`, `name`, `description`, `estimatedDurationMinutes`, `basePrice`, `active`
+  - `baseProcedures: List<ProcedureResponseDTO>`
+  - `createdAt`, `updatedAt`
 
 ---
 
@@ -135,6 +160,15 @@ En esta version se incorporan 4 bloques principales:
 - `totalSpareParts` = suma de `unitPrice * quantity`.
 - `totalToPay` = `totalServices + totalSpareParts`.
 
+### 5.7 Citas del tecnico (listado diario)
+
+- El endpoint `GET /api/v1/orders/my/today` considera "hoy" segun `processStartedAt` (fecha/hora de confirmacion de recepcion).
+
+### 5.8 Servicios del taller (admin)
+
+- CRUD completo de servicios del taller (`/api/v1/services`).
+- Los procedimientos base se gestionan por servicio (reemplazo de set completo).
+
 ---
 
 ## 6) Endpoints nuevos
@@ -165,6 +199,21 @@ Base path: `/api/v1/orders`
 | `PATCH` | `/api/v1/orders/{orderId}/procedures/{procedureId}` | Actualizar costo de procedimiento en una orden | `UpdateOrderProcedureCostDTO` | `OrderResponseDTO` | `TECHNICIAN` |
 | `POST` | `/api/v1/orders/{orderId}/spares` | Agregar repuesto a una orden | `AddSpareToOrderDTO` | `OrderResponseDTO` | `TECHNICIAN` |
 | `POST` | `/api/v1/orders/{orderId}/complete` | Completar una orden | - | `OrderResponseDTO` | `TECHNICIAN` |
+| `GET` | `/api/v1/orders/my/today` | Listar citas con recepcion confirmada hoy del tecnico autenticado | - | `List<TechnicianDailyOrderDTO>` | `TECHNICIAN` |
+
+### 6.3 Servicios del taller (admin)
+
+Base path: `/api/v1/services`
+
+| Metodo | Endpoint | Descripcion | Request DTO | Response DTO | Acceso |
+|---|---|---|---|---|---|
+| `POST` | `/api/v1/services` | Crear servicio | `CreateServiceDTO` | `ServiceResponseDTO` | `ADMIN` |
+| `GET` | `/api/v1/services` | Listar servicios | - | `List<ServiceResponseDTO>` | `ADMIN` |
+| `GET` | `/api/v1/services/{id}` | Consultar servicio por ID | - | `ServiceResponseDTO` | `ADMIN` |
+| `PUT` | `/api/v1/services/{id}` | Actualizar servicio | `UpdateServiceDTO` | `ServiceResponseDTO` | `ADMIN` |
+| `DELETE` | `/api/v1/services/{id}` | Eliminar servicio | - | - | `ADMIN` |
+| `GET` | `/api/v1/services/{id}/procedures` | Listar procedimientos base de un servicio | - | `List<ProcedureResponseDTO>` | `ADMIN` |
+| `PUT` | `/api/v1/services/{id}/procedures` | Actualizar procedimientos base de un servicio | `UpdateServiceProceduresDTO` | `List<ProcedureResponseDTO>` | `ADMIN` |
 
 ---
 
@@ -177,6 +226,7 @@ Base path: `/api/v1/orders`
 - `OrderServiceNotFoundException` -> `404` cuando la orden no existe.
 - `DuplicateProcedureNameException` -> `409` cuando se intenta crear/actualizar con nombre duplicado.
 - `TechnicianNotAssignedException` -> `403` si el tecnico autenticado no esta asignado a la cita u orden.
+- `DuplicateServiceNameException` -> `409` cuando se intenta crear/actualizar con nombre duplicado.
 
 ### 7.2 Excepciones reutilizadas relevantes
 
@@ -208,6 +258,7 @@ Cambios en `SecurityConfig`:
   - `/api/v1/orders/**` -> `ADMIN` o `TECHNICIAN` (ademas del `@PreAuthorize` por endpoint).
   - `GET /api/v1/procedures/**` -> `ADMIN` o `TECHNICIAN`.
   - `POST`/`PUT /api/v1/procedures/**` -> solo `ADMIN`.
+  - `/api/v1/services/**` -> solo `ADMIN`.
 
 ---
 
@@ -257,6 +308,7 @@ Se agregaron anotaciones de Swagger completas en:
 
 - `OrderServiceController`
 - `ProcedureController`
+- `OurServicesController`
 
 Cobertura de:
 
@@ -266,4 +318,3 @@ Cobertura de:
 - `@Schema` en DTOs de error
 
 > `APIDOC_V5.md` funciona como addendum incremental y no reemplaza los documentos anteriores.
-

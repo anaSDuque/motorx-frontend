@@ -74,32 +74,99 @@
     </div>
   </div>
 
+  <div class="card border-0 mb-4">
+    <div class="card-header bg-transparent fw-semibold">Comentarios del cliente</div>
+    <div class="card-body">
+      @if (appointmentLoading()) {
+        <div class="text-muted">
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Cargando comentarios...
+        </div>
+      } @else if (appointment(); as appt) {
+        @if (appt.clientNotes) {
+          <p class="mb-0">{{ appt.clientNotes }}</p>
+        } @else {
+          <p class="text-muted mb-0">Sin comentarios del cliente.</p>
+        }
+      } @else {
+        <p class="text-muted mb-0">Sin comentarios del cliente.</p>
+      }
+
+      @if (appointmentError()) {
+        <div class="text-danger small mt-2">{{ appointmentError() }}</div>
+      }
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
       <div class="card border-0 h-100">
         <div class="card-header bg-transparent fw-semibold">Procedimientos</div>
         <div class="card-body">
           @if (canEditOrder()) {
-            <form [formGroup]="addProcedureForm" (ngSubmit)="addProcedure()" class="row g-2 align-items-end mb-3">
-              <div class="col-md-7">
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-md-8">
                 <label class="form-label">Procedimiento</label>
-                <select class="form-select" formControlName="procedureId">
+                <select class="form-select" [formControl]="procedureSelectControl" (change)="queueProcedure()">
                   <option [ngValue]="null" disabled>Selecciona</option>
                   @for (proc of procedures(); track proc.id) {
                     <option [ngValue]="proc.id">{{ proc.name }}</option>
                   }
                 </select>
               </div>
-              <div class="col-md-3">
-                <label class="form-label">Costo</label>
-                <input type="number" class="form-control" formControlName="cost" min="0" />
-              </div>
-              <div class="col-md-2">
-                <button class="btn btn-outline-primary w-100" type="submit" [disabled]="loading()">
-                  <i class="bi bi-plus-lg"></i>
-                </button>
-              </div>
-            </form>
+            </div>
+
+            <div class="mb-3">
+              @if (pendingProcedures().length === 0) {
+                <div class="text-muted">Sin procedimientos pendientes por agregar.</div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle">
+                    <thead>
+                      <tr>
+                        <th>Procedimiento</th>
+                        <th>Costo</th>
+                        <th class="text-end">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (pending of pendingProcedures(); track pending.id) {
+                        <tr>
+                          <td>{{ getProcedureName(pending.id) }}</td>
+                          <td>
+                            <input
+                              type="number"
+                              class="form-control form-control-sm"
+                              [value]="pending.cost"
+                              min="0"
+                              (input)="updatePendingCost(pending.id, $event.target.value)"
+                            />
+                          </td>
+                          <td class="text-end">
+                            <button
+                              class="btn btn-sm btn-outline-primary me-2"
+                              type="button"
+                              (click)="addPendingProcedure(pending.id)"
+                              [disabled]="loading()"
+                            >
+                              <i class="bi bi-plus-lg"></i>
+                            </button>
+                            <button
+                              class="btn btn-sm btn-outline-danger"
+                              type="button"
+                              (click)="removePendingProcedure(pending.id)"
+                              [disabled]="loading()"
+                            >
+                              <i class="bi bi-x-lg"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
           }
 
           @if (current.procedures.length === 0) {
